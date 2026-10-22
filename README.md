@@ -79,13 +79,13 @@ Los archivos optimizados y empaquetados se generarán en la carpeta `dist/`.
 
 ---
 
-## 🦊 Integración Continua con GitLab (CI/CD)
+## 🚀 Integración Continua y Despliegue (GitHub Actions / GitLab)
 
-El proyecto incluye un pipeline automatizado en `.gitlab-ci.yml`:
+El proyecto incluye pipelines automatizados tanto para **GitHub Actions** (`.github/workflows/deploy.yml`) como para **GitLab CI** (`.gitlab-ci.yml`):
 
-1. **`test`**: Verifica tipos con `npx tsc --noEmit` y corre todas las pruebas unitarias con `npm test`.
-2. **`build`**: Compila el juego en modo producción (`npm run build-nolog`) y guarda los artefactos.
-3. **`pages`**: Al hacer push a la rama principal (`main`), despliega automáticamente el juego en **GitLab Pages** para jugarlo en la web.
+1. **`test`**: Verifica tipos con `npx tsc --noEmit` y corre todas las pruebas unitarias con `node:test`.
+2. **`build`**: Compila el juego en modo producción (`npm run build-nolog`).
+3. **`pages`**: Al hacer push a la rama principal (`main`), despliega automáticamente el juego en **GitHub Pages / GitLab Pages** para jugarlo en la web.
 
 ---
 
