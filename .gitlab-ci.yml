@@ -1,0 +1,52 @@
+image: node:24-alpine
+
+stages:
+  - test
+  - build
+  - deploy
+
+# Cache package dependencies across pipelines
+cache:
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - .npm/
+
+before_script:
+  - npm ci --cache .npm --prefer-offline
+
+# 1. Verification & Tests
+lint_and_test:
+  stage: test
+  script:
+    - npx tsc --noEmit
+    - npm test
+
+# 2. Production Build
+build:
+  stage: build
+  script:
+    - npm run build-nolog
+  artifacts:
+    name: "dist-$CI_COMMIT_REF_SLUG"
+    paths:
+      - dist/
+    expire_in: 1 week
+
+# 3. GitLab Pages (Deploy playable game to GitLab Pages on main branch)
+pages:
+  stage: deploy
+  dependencies:
+    - build
+  script:
+    - rm -rf public_pages
+    - mkdir -p public_pages
+    - cp -r dist/* public_pages/
+    - rm -rf public
+    - mv public_pages public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
