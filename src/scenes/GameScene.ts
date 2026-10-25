@@ -9,6 +9,7 @@ import { TreasureGraphics } from '../graphics/TreasureGraphics.ts';
 import { MummyGraphics } from '../graphics/MummyGraphics.ts';
 import { MovingWallGraphics } from '../graphics/MovingWallGraphics.ts';
 import { KeyGraphics } from '../graphics/KeyGraphics.ts';
+import { HieroglyphGraphics } from '../graphics/HieroglyphGraphics.ts';
 import { Player } from '../entities/Player.ts';
 import { Treasure } from '../entities/Treasure.ts';
 import { Mummy } from '../entities/Mummy.ts';
@@ -18,6 +19,7 @@ import { ChamberTreasures } from '../grid/ChamberTreasures.ts';
 import { ChamberMummies } from '../grid/ChamberMummies.ts';
 import { ChamberMovingWalls } from '../grid/ChamberMovingWalls.ts';
 import { ChamberKeys } from '../grid/ChamberKeys.ts';
+import { Chamber1Puzzle } from '../puzzles/Chamber1Puzzle.ts';
 
 export class GameScene extends Phaser.Scene {
     private grid!: RoomGrid;
@@ -44,6 +46,13 @@ export class GameScene extends Phaser.Scene {
     private hasKey: boolean = false;
     private isChamberCompleted: boolean = false;
     private doorWarningCooldown: number = 0;
+
+    // Sistema de Puzles Diegéticos (Recámara 1)
+    private chamber1Puzzle: Chamber1Puzzle | null = null;
+    private muralSprites: Phaser.GameObjects.Image[] = [];
+    private secretTreasureSprite: Phaser.GameObjects.Image | null = null;
+    private sacredGemSprite: Phaser.GameObjects.Image | null = null;
+    private bgHieroglyphs?: Phaser.GameObjects.TileSprite;
 
     // Enemigos Momia de la recámara actual
     private mummies: Mummy[] = [];
@@ -77,16 +86,40 @@ export class GameScene extends Phaser.Scene {
     }
 
     preload(): void {
+        this.load.image('hieroglyphs_wall', 'assets/hieroglyphs_wall_seamless.png');
+        this.load.image('hieroglyphs_raw', 'jeroglificosEgipcios_2.png');
+        this.load.image('mural_puzzle_1', 'assets/mural_puzzle_1.png');
+        this.load.image('mural_puzzle_2', 'assets/mural_puzzle_2.png');
+
         TileGraphics.generateAll(this);
         PlayerGraphics.generateAll(this);
         TreasureGraphics.generateAll(this);
         MummyGraphics.generateAll(this);
         MovingWallGraphics.generateAll(this);
         KeyGraphics.generateAll(this);
+        HieroglyphGraphics.generateAll(this);
     }
 
     create(): void {
-        this.cameras.main.setBackgroundColor('#181108');
+        this.cameras.main.setBackgroundColor('#100a04');
+
+        // Fondo de la pirámide cubierto con los jeroglíficos egipcios auténticos (jeroglificosEgipcios_2.png)
+        const bgKey = this.textures.exists('hieroglyphs_wall') ? 'hieroglyphs_wall' : 'hieroglyphs_raw';
+        if (this.textures.exists(bgKey)) {
+            this.bgHieroglyphs = this.add.tileSprite(
+                0,
+                0,
+                GameConstants.VIRTUAL_WIDTH,
+                GameConstants.VIRTUAL_HEIGHT,
+                bgKey
+            )
+                .setOrigin(0, 0)
+                .setTileScale(0.42, 0.42)
+                .setTint(0x7c5427) // Tono cálido de bajorrelieve en piedra arenisca
+                .setAlpha(0.38)    // Fondo visible y evocador manteniendo contraste retro con las plataformas y jugador
+                .setDepth(-100);
+            this.bgHieroglyphs.tilePositionX = (this.initialChamber - 1) * 66;
+        }
 
         // Inicializar cuadrícula con la recámara seleccionada
         this.grid = new RoomGrid();
@@ -98,8 +131,14 @@ export class GameScene extends Phaser.Scene {
         this.doorWarningCooldown = 0;
         this.chamberKey = ChamberKeys.createKeyForChamber(this.initialChamber);
 
+        // Sistema de Puzles Diegéticos (Recámara 1)
+        this.chamber1Puzzle = this.initialChamber === 1 ? new Chamber1Puzzle() : null;
+
         // Construir visualmente los tiles estáticos de la recámara con origen (0, 0)
         this.renderChamber();
+
+        // Renderizar murales jeroglíficos diegéticos
+        this.renderMurals();
 
         // Renderizar llave colgada y cadenas de suspensión
         this.renderKey();
@@ -207,6 +246,7 @@ export class GameScene extends Phaser.Scene {
             this.checkKeyCollection();
             this.checkExitDoorInteraction();
             this.checkTreasureCollection();
+            this.updateChamber1Puzzle();
             this.updateMummies();
             this.checkMummyCollisions();
             this.updateHUD();
@@ -250,6 +290,9 @@ export class GameScene extends Phaser.Scene {
             // Detección de pisada en activador exterior o interior
             if (this.player && !this.player.isEliminated) {
                 if (wall.isPlayerOnAnyTrigger(this.player.x, this.player.y, Player.HITBOX_WIDTH, Player.HITBOX_HEIGHT)) {
+                    if (!wasOpen && this.chamber1Puzzle) {
+                        this.chamber1Puzzle.notifyWallActivated(wall.id);
+                    }
                     wall.activate(); // Inicia o reinicia el temporizador de 5 segundos
                 }
             }
@@ -329,7 +372,9 @@ export class GameScene extends Phaser.Scene {
             const sprite = this.mummySprites[i];
             if (sprite) {
                 sprite.setPosition(mummy.x, mummy.y);
-                sprite.setTexture(mummy.textureKey);
+                const isPetrified = this.chamber1Puzzle?.isMummyPetrified ?? false;
+                const tex = isPetrified ? 'mummy_petrified' : mummy.textureKey;
+                sprite.setTexture(tex);
                 sprite.setFlipX(mummy.direction === Direction.Left);
             }
         }
@@ -365,6 +410,9 @@ export class GameScene extends Phaser.Scene {
                 const points = treasure.collect();
                 if (points > 0) {
                     this.currentScore += points;
+                    if (this.chamber1Puzzle) {
+                        this.chamber1Puzzle.notifyTreasureCollected();
+                    }
 
                     // Cambiar a sprite de cofre abierto
                     const sprite = this.treasureSprites[i];
@@ -415,8 +463,23 @@ export class GameScene extends Phaser.Scene {
         this.doorWarningCooldown = 0;
         this.chamberKey = ChamberKeys.createKeyForChamber(chamberNumber);
 
+        // Sistema de Puzles Diegéticos
+        this.chamber1Puzzle = chamberNumber === 1 ? new Chamber1Puzzle() : null;
+        if (this.secretTreasureSprite) {
+            this.secretTreasureSprite.destroy();
+            this.secretTreasureSprite = null;
+        }
+        if (this.sacredGemSprite) {
+            this.sacredGemSprite.destroy();
+            this.sacredGemSprite = null;
+        }
+
         this.grid.loadChamber(chamberNumber);
+        if (this.bgHieroglyphs) {
+            this.bgHieroglyphs.tilePositionX = (chamberNumber - 1) * 66;
+        }
         this.renderChamber();
+        this.renderMurals();
         this.renderKey();
 
         this.movingWalls = ChamberMovingWalls.createWallsForChamber(chamberNumber);
@@ -453,6 +516,19 @@ export class GameScene extends Phaser.Scene {
             this.exitDoorSprite.setTexture(doorTexture);
         }
         this.renderKey();
+
+        // Restablecer sistema de puzles de la Recámara 1
+        if (this.chamber1Puzzle) {
+            this.chamber1Puzzle.reset();
+        }
+        if (this.secretTreasureSprite) {
+            this.secretTreasureSprite.destroy();
+            this.secretTreasureSprite = null;
+        }
+        if (this.sacredGemSprite) {
+            this.sacredGemSprite.destroy();
+            this.sacredGemSprite = null;
+        }
 
         // Restablecer paredes movedizas al estado cerrado
         for (let i = 0; i < this.movingWalls.length; i++) {
@@ -628,6 +704,8 @@ export class GameScene extends Phaser.Scene {
     private bringUIElementsToTop(): void {
         this.triggerSprites.forEach((s) => this.children.bringToTop(s));
         this.treasureSprites.forEach((s) => this.children.bringToTop(s));
+        if (this.secretTreasureSprite) this.children.bringToTop(this.secretTreasureSprite);
+        if (this.sacredGemSprite) this.children.bringToTop(this.sacredGemSprite);
         this.movingWallSprites.forEach((group) => group.forEach((s) => this.children.bringToTop(s)));
         this.wallTimerTexts.forEach((t) => this.children.bringToTop(t));
         this.chainSprites.forEach((s) => this.children.bringToTop(s));
@@ -697,6 +775,9 @@ export class GameScene extends Phaser.Scene {
             const pts = this.chamberKey.collect();
             this.hasKey = true;
             this.currentScore += pts;
+            if (this.chamber1Puzzle) {
+                this.chamber1Puzzle.notifyKeyCollected();
+            }
 
             // Animación retro de recogida
             if (this.keySprite) {
@@ -855,6 +936,153 @@ export class GameScene extends Phaser.Scene {
                 this.hudKeyText.setText('LLAVE: ──');
                 this.hudKeyText.setColor('#8a6b47');
             }
+        }
+    }
+
+    /**
+     * Renderiza los murales jeroglíficos diegéticos grabados en la roca de fondo para la Recámara 1.
+     */
+    private renderMurals(): void {
+        this.muralSprites.forEach((sprite) => sprite.destroy());
+        this.muralSprites = [];
+
+        if (this.grid.currentChamber !== 1) return;
+
+        // Mural Puzle 1 en Nivel 0 (columnas 7..9, fila 11): 96x32 px
+        const mural1 = this.add.image(7 * GameConstants.TILE_SIZE, 11 * GameConstants.TILE_SIZE, 'mural_puzzle_1').setOrigin(0, 0);
+        this.muralSprites.push(mural1);
+
+        // Mural Puzle 2 en Nivel 1 (columnas 6..8, fila 7): 96x32 px
+        const mural2 = this.add.image(6 * GameConstants.TILE_SIZE, 7 * GameConstants.TILE_SIZE, 'mural_puzzle_2').setOrigin(0, 0);
+        this.muralSprites.push(mural2);
+    }
+
+    /**
+     * Actualiza y sincroniza frame a frame la lógica de los puzles diegéticos de la Recámara 1.
+     */
+    private updateChamber1Puzzle(): void {
+        if (!this.chamber1Puzzle || !this.player || this.player.isEliminated) return;
+
+        // 1. Actualizar máquina de estados del puzzle (saltos sobre momia, temporizador petrificación)
+        this.chamber1Puzzle.update(
+            this.player.x,
+            this.player.y,
+            this.player.isJumping,
+            this.mummies
+        );
+
+        // 2. Comprobar si se ha materializado el tesoro secreto y crearlo/mostrarlo si aún no tiene sprite
+        if (this.chamber1Puzzle.isSecretTreasureSpawned && !this.chamber1Puzzle.isSecretTreasureCollected) {
+            if (!this.secretTreasureSprite) {
+                this.secretTreasureSprite = this.add.image(
+                    this.chamber1Puzzle.secretTreasure.pixelX,
+                    this.chamber1Puzzle.secretTreasure.pixelY,
+                    'treasure_closed'
+                ).setOrigin(0, 0);
+
+                // Efecto de materialización divina
+                this.tweens.add({
+                    targets: this.secretTreasureSprite,
+                    scaleX: 1.3,
+                    scaleY: 1.3,
+                    yoyo: true,
+                    duration: 200
+                });
+                this.bringUIElementsToTop();
+            }
+
+            // Chequeo de recolección del tesoro secreto
+            const pts = this.chamber1Puzzle.checkSecretTreasureCollection(
+                this.player.x,
+                this.player.y,
+                Player.HITBOX_WIDTH,
+                Player.HITBOX_HEIGHT
+            );
+            if (pts > 0) {
+                this.currentScore += pts;
+                if (this.secretTreasureSprite) {
+                    this.secretTreasureSprite.setTexture('treasure_open');
+                    this.tweens.add({
+                        targets: this.secretTreasureSprite,
+                        scaleX: 1.3,
+                        scaleY: 1.3,
+                        alpha: 0.8,
+                        duration: 150
+                    });
+                }
+                this.showFloatingScore(
+                    this.chamber1Puzzle.secretTreasure.pixelX + 16,
+                    this.chamber1Puzzle.secretTreasure.pixelY,
+                    `+${pts} PTS! ¡TESORO SECRETO DEL FARAÓN!`
+                );
+                if (this.statusText) {
+                    this.statusText.setText('¡PUZLE RESUELTO! Tesoro Secreto del Faraón reclamado');
+                }
+                this.updateHUD();
+            }
+        }
+
+        // 3. Comprobar si se ha materializado la Gema Sagrada y crearla/mostrarla si aún no tiene sprite
+        if (this.chamber1Puzzle.isGemSpawned && !this.chamber1Puzzle.isGemCollected) {
+            if (!this.sacredGemSprite) {
+                this.sacredGemSprite = this.add.image(
+                    this.chamber1Puzzle.gemPixelX,
+                    this.chamber1Puzzle.gemPixelY,
+                    'item_gem'
+                ).setOrigin(0, 0);
+
+                // Flotación mística
+                this.tweens.add({
+                    targets: this.sacredGemSprite,
+                    y: this.chamber1Puzzle.gemPixelY - 4,
+                    duration: 600,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
+                });
+                this.bringUIElementsToTop();
+            }
+
+            // Chequeo de recolección de la gema
+            const gemPts = this.chamber1Puzzle.checkGemCollection(
+                this.player.x,
+                this.player.y,
+                Player.HITBOX_WIDTH,
+                Player.HITBOX_HEIGHT
+            );
+            if (gemPts > 0) {
+                this.currentScore += gemPts;
+                if (this.sacredGemSprite) {
+                    this.tweens.add({
+                        targets: this.sacredGemSprite,
+                        scaleX: 1.5,
+                        scaleY: 1.5,
+                        alpha: 0,
+                        duration: 200,
+                        onComplete: () => {
+                            if (this.sacredGemSprite) {
+                                this.sacredGemSprite.destroy();
+                                this.sacredGemSprite = null;
+                            }
+                        }
+                    });
+                }
+                this.showFloatingScore(
+                    this.chamber1Puzzle.gemPixelX + 16,
+                    this.chamber1Puzzle.gemPixelY,
+                    `+${gemPts} PTS! ¡GEMA SAGRADA DE RA!`
+                );
+                if (this.statusText) {
+                    this.statusText.setText('¡PUZLE RESUELTO! Gema Sagrada de Ra obtenida');
+                }
+                this.updateHUD();
+            }
+        }
+
+        // 4. Procesar notificaciones pendientes
+        const notifications = this.chamber1Puzzle.consumePendingNotifications();
+        for (const notif of notifications) {
+            this.showFloatingScore(notif.x, notif.y, notif.text);
         }
     }
 }

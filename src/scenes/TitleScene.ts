@@ -34,12 +34,25 @@ export class TitleScene extends Phaser.Scene {
     }
 
     preload(): void {
+        this.load.image('hieroglyphs_wall', 'assets/hieroglyphs_wall_seamless.png');
+        this.load.image('hieroglyphs_raw', 'jeroglificosEgipcios_2.png');
         TileGraphics.generateAll(this);
         PlayerGraphics.generateAll(this);
     }
 
     create(data?: { lastChamber?: number }): void {
-        this.cameras.main.setBackgroundColor('#140d06');
+        this.cameras.main.setBackgroundColor('#100a04');
+
+        // Fondo de jeroglíficos egipcios auténticos en bajorrelieve
+        const bgKey = this.textures.exists('hieroglyphs_wall') ? 'hieroglyphs_wall' : 'hieroglyphs_raw';
+        if (this.textures.exists(bgKey)) {
+            this.add.tileSprite(0, 0, GameConstants.VIRTUAL_WIDTH, GameConstants.VIRTUAL_HEIGHT, bgKey)
+                .setOrigin(0, 0)
+                .setTileScale(0.42, 0.42)
+                .setTint(0x5a3c1c)
+                .setAlpha(0.24)
+                .setDepth(-100);
+        }
 
         if (data?.lastChamber) {
             this.menuModel.selectedChamber = data.lastChamber;

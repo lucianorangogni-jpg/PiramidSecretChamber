@@ -95,6 +95,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         return this.playerState === PlayerState.Eliminated;
     }
 
+    public get isJumping(): boolean {
+        return this.playerState === PlayerState.Jumping;
+    }
+
     public loseLife(): void {
         if (this.lives > 0) {
             this.lives--;
