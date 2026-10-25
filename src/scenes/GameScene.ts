@@ -1,20 +1,42 @@
 import * as Phaser from 'phaser';
 import { GameConstants } from '../core/GameConstants.ts';
+import { Direction } from '../core/Direction.ts';
 import { TileType } from '../grid/TileType.ts';
 import { RoomGrid } from '../grid/RoomGrid.ts';
 import { TileGraphics } from '../graphics/TileGraphics.ts';
 import { PlayerGraphics } from '../graphics/PlayerGraphics.ts';
+import { TreasureGraphics } from '../graphics/TreasureGraphics.ts';
+import { MummyGraphics } from '../graphics/MummyGraphics.ts';
 import { Player } from '../entities/Player.ts';
+import { Treasure } from '../entities/Treasure.ts';
+import { Mummy } from '../entities/Mummy.ts';
+import { ChamberTreasures } from '../grid/ChamberTreasures.ts';
+import { ChamberMummies } from '../grid/ChamberMummies.ts';
 
 export class GameScene extends Phaser.Scene {
     private grid!: RoomGrid;
     private player!: Player;
     private tileSprites: Phaser.GameObjects.Image[] = [];
 
-    // Elementos del HUD
+    // Colección de tesoros de la recámara actual
+    private treasures: Treasure[] = [];
+    private treasureSprites: Phaser.GameObjects.Image[] = [];
+    private currentScore: number = 0;
+    private chamberStartScore: number = 0;
+
+    // Enemigos Momia de la recámara actual
+    private mummies: Mummy[] = [];
+    private mummySprites: Phaser.GameObjects.Image[] = [];
+
+    // Elementos del HUD Izquierdo
     private chamberTitleText!: Phaser.GameObjects.Text;
     private statusText!: Phaser.GameObjects.Text;
     private controlsText!: Phaser.GameObjects.Text;
+
+    // Elementos del HUD Derecho (US-007)
+    private hudStatusTitleText!: Phaser.GameObjects.Text;
+    private hudScoreText!: Phaser.GameObjects.Text;
+    private hudLivesText!: Phaser.GameObjects.Text;
 
     // Teclas
     private numberKeys!: { [key: string]: Phaser.Input.Keyboard.Key };
@@ -35,6 +57,8 @@ export class GameScene extends Phaser.Scene {
     preload(): void {
         TileGraphics.generateAll(this);
         PlayerGraphics.generateAll(this);
+        TreasureGraphics.generateAll(this);
+        MummyGraphics.generateAll(this);
     }
 
     create(): void {
@@ -47,15 +71,23 @@ export class GameScene extends Phaser.Scene {
         // Construir visualmente los tiles de la recámara con origen (0, 0)
         this.renderChamber();
 
+        // Cargar y renderizar los tesoros de la recámara
+        this.treasures = ChamberTreasures.createTreasuresForChamber(this.initialChamber);
+        this.renderTreasures();
+
+        // Cargar y renderizar las momias patrulleras
+        this.mummies = ChamberMummies.createMummiesForChamber(this.initialChamber);
+        this.renderMummies();
+
         // Spawn del jugador: centro horizontal de columna 2 y pies sobre el suelo (fila 14 = 448 px)
         const startX = 2 * GameConstants.TILE_SIZE + 16;
         const startY = (GameConstants.GRID_ROWS - 1) * GameConstants.TILE_SIZE; // 14 * 32 = 448
         this.player = new Player(this, startX, startY);
 
-        // Textos del HUD
+        // Textos del HUD Izquierdo
         this.chamberTitleText = this.add.text(12, 10, '', {
             fontFamily: 'Courier',
-            fontSize: '16px',
+            fontSize: '15px',
             color: '#f6c672'
         });
 
@@ -64,6 +96,26 @@ export class GameScene extends Phaser.Scene {
             fontSize: '13px',
             color: '#ffd2a5'
         });
+
+        // Panel HUD Derecho (US-007: ESTADO / PUNTOS / VIDAS)
+        this.hudStatusTitleText = this.add.text(628, 10, '═ ESTADO ═', {
+            fontFamily: 'Courier',
+            fontSize: '13px',
+            fontStyle: 'bold',
+            color: '#f6c672'
+        }).setOrigin(1, 0);
+
+        this.hudScoreText = this.add.text(628, 25, 'PUNTOS: 000000', {
+            fontFamily: 'Courier',
+            fontSize: '13px',
+            color: '#ffe26a'
+        }).setOrigin(1, 0);
+
+        this.hudLivesText = this.add.text(628, 41, 'VIDAS: ❤️❤️❤️ (3)', {
+            fontFamily: 'Courier',
+            fontSize: '12px',
+            color: '#ffd2a5'
+        }).setOrigin(1, 0);
 
         this.controlsText = this.add.text(12, 460, '[←][→] Moverse | [↑][↓] Escaleras | [Espacio] Salto | [ESC/M] Menú | [R] Reintentar', {
             fontFamily: 'Courier',
@@ -91,11 +143,15 @@ export class GameScene extends Phaser.Scene {
         }
 
         this.updateHUD();
+        this.bringUIElementsToTop();
     }
 
     update(): void {
         if (this.player) {
             this.player.updateWithGrid(this.grid);
+            this.checkTreasureCollection();
+            this.updateMummies();
+            this.checkMummyCollisions();
             this.updateHUD();
         }
 
@@ -126,9 +182,106 @@ export class GameScene extends Phaser.Scene {
         }
     }
 
+    /**
+     * Actualiza la patrulla autónoma de las momias y sincroniza sus sprites.
+     */
+    private updateMummies(): void {
+        for (let i = 0; i < this.mummies.length; i++) {
+            const mummy = this.mummies[i];
+            mummy.update();
+
+            const sprite = this.mummySprites[i];
+            if (sprite) {
+                sprite.setPosition(mummy.x, mummy.y);
+                sprite.setTexture(mummy.textureKey);
+                sprite.setFlipX(mummy.direction === Direction.Left);
+            }
+        }
+    }
+
+    /**
+     * Detección de colisión letal con las momias patrulleras.
+     */
+    private checkMummyCollisions(): void {
+        if (!this.player || this.player.isEliminated) return;
+
+        for (const mummy of this.mummies) {
+            if (mummy.checkOverlap(this.player.x, this.player.y, Player.HITBOX_WIDTH, Player.HITBOX_HEIGHT)) {
+                this.player.eliminate();
+                this.updateHUD();
+                break;
+            }
+        }
+    }
+
+    /**
+     * Detección de contacto con los cofres de tesoro para recolección inmediata.
+     */
+    private checkTreasureCollection(): void {
+        if (!this.player || this.player.isEliminated) return;
+
+        for (let i = 0; i < this.treasures.length; i++) {
+            const treasure = this.treasures[i];
+            if (
+                treasure.isAvailable &&
+                treasure.checkOverlap(this.player.x, this.player.y, Player.HITBOX_WIDTH, Player.HITBOX_HEIGHT)
+            ) {
+                const points = treasure.collect();
+                if (points > 0) {
+                    this.currentScore += points;
+
+                    // Cambiar a sprite de cofre abierto
+                    const sprite = this.treasureSprites[i];
+                    if (sprite) {
+                        sprite.setTexture('treasure_open');
+                        this.tweens.add({
+                            targets: sprite,
+                            scaleX: 1.25,
+                            scaleY: 1.25,
+                            yoyo: true,
+                            duration: 120
+                        });
+                    }
+
+                    // Notificación flotante de puntuación
+                    this.showFloatingScore(treasure.pixelX + 16, treasure.pixelY, `+${points} PTS!`);
+                    this.updateHUD();
+                }
+            }
+        }
+    }
+
+    private showFloatingScore(x: number, y: number, text: string): void {
+        const popup = this.add.text(x, y, text, {
+            fontFamily: 'Courier',
+            fontSize: '14px',
+            fontStyle: 'bold',
+            color: '#ffe26a',
+            stroke: '#281303',
+            strokeThickness: 3
+        }).setOrigin(0.5, 1);
+
+        this.tweens.add({
+            targets: popup,
+            y: y - 28,
+            alpha: 0,
+            duration: 1200,
+            ease: 'Power1',
+            onComplete: () => {
+                popup.destroy();
+            }
+        });
+    }
+
     private switchChamber(chamberNumber: number): void {
         this.grid.loadChamber(chamberNumber);
+        this.treasures = ChamberTreasures.createTreasuresForChamber(chamberNumber);
+        this.mummies = ChamberMummies.createMummiesForChamber(chamberNumber);
+        this.chamberStartScore = this.currentScore;
+
         this.renderChamber();
+        this.renderTreasures();
+        this.renderMummies();
         this.respawnPlayer();
     }
 
@@ -136,6 +289,27 @@ export class GameScene extends Phaser.Scene {
         const startX = 2 * GameConstants.TILE_SIZE + 16;
         const startY = (GameConstants.GRID_ROWS - 1) * GameConstants.TILE_SIZE; // 448
         this.player.respawn(startX, startY);
+
+        // Restablecer cofres de la recámara al estado disponible inicial
+        for (let i = 0; i < this.treasures.length; i++) {
+            this.treasures[i].reset();
+            if (this.treasureSprites[i]) {
+                this.treasureSprites[i].setTexture('treasure_closed');
+            }
+        }
+
+        // Restablecer momias a sus posiciones iniciales de patrulla
+        for (let i = 0; i < this.mummies.length; i++) {
+            this.mummies[i].reset();
+            const sprite = this.mummySprites[i];
+            if (sprite) {
+                sprite.setPosition(this.mummies[i].x, this.mummies[i].y);
+                sprite.setTexture(this.mummies[i].textureKey);
+                sprite.setFlipX(this.mummies[i].direction === Direction.Left);
+            }
+        }
+
+        this.currentScore = this.chamberStartScore;
         this.updateHUD();
     }
 
@@ -167,16 +341,48 @@ export class GameScene extends Phaser.Scene {
                 }
 
                 if (textureKey) {
-                    // Renderizado nítido con origen en esquina superior izquierda
                     const img = this.add.image(x * size, y * size, textureKey).setOrigin(0, 0);
                     this.tileSprites.push(img);
                 }
             }
         }
+    }
 
+    private renderTreasures(): void {
+        this.treasureSprites.forEach((sprite) => sprite.destroy());
+        this.treasureSprites = [];
+
+        for (const t of this.treasures) {
+            const textureKey = t.isCollected ? 'treasure_open' : 'treasure_closed';
+            const sprite = this.add.image(t.pixelX, t.pixelY, textureKey).setOrigin(0, 0);
+            this.treasureSprites.push(sprite);
+        }
+
+        this.bringUIElementsToTop();
+    }
+
+    private renderMummies(): void {
+        this.mummySprites.forEach((sprite) => sprite.destroy());
+        this.mummySprites = [];
+
+        for (const m of this.mummies) {
+            const sprite = this.add.image(m.x, m.y, m.textureKey).setOrigin(0.5, 1.0);
+            sprite.setFlipX(m.direction === Direction.Left);
+            this.mummySprites.push(sprite);
+        }
+
+        this.bringUIElementsToTop();
+    }
+
+    private bringUIElementsToTop(): void {
+        this.treasureSprites.forEach((s) => this.children.bringToTop(s));
+        this.mummySprites.forEach((s) => this.children.bringToTop(s));
         if (this.player) this.children.bringToTop(this.player);
         if (this.chamberTitleText) this.children.bringToTop(this.chamberTitleText);
         if (this.statusText) this.children.bringToTop(this.statusText);
+        if (this.hudStatusTitleText) this.children.bringToTop(this.hudStatusTitleText);
+        if (this.hudScoreText) this.children.bringToTop(this.hudScoreText);
+        if (this.hudLivesText) this.children.bringToTop(this.hudLivesText);
         if (this.controlsText) this.children.bringToTop(this.controlsText);
     }
 
@@ -187,11 +393,27 @@ export class GameScene extends Phaser.Scene {
             `🏛️ RETRO PIRÁMIDE: ${this.grid.roomName} [Nivel ${this.grid.pyramidLevel}/4]`
         );
 
-        const livesDisplay = '❤️'.repeat(Math.max(0, this.player.currentLives));
-        const statusMsg = this.player.isEliminated
-            ? '¡ELIMINADO! Presiona [R] para reintentar'
-            : `Estado: ${this.player.currentState}`;
+        let statusMsg: string;
+        if (this.player.isEliminated) {
+            statusMsg = this.player.currentLives <= 0
+                ? '¡GAME OVER! Presiona [ESC/M] para volver al Menú'
+                : '¡ELIMINADO! Presiona [R] para reintentar';
+        } else {
+            statusMsg = `Estado: ${this.player.currentState}`;
+        }
 
-        this.statusText.setText(`Vidas: ${livesDisplay} (${this.player.currentLives}) | ${statusMsg}`);
+        this.statusText.setText(statusMsg);
+
+        // Actualizar HUD superior derecho (US-007)
+        if (this.hudScoreText) {
+            const formattedScore = String(this.currentScore).padStart(6, '0');
+            this.hudScoreText.setText(`PUNTOS: ${formattedScore}`);
+        }
+
+        if (this.hudLivesText) {
+            const livesCount = Math.max(0, this.player.currentLives);
+            const livesIcons = '❤️'.repeat(livesCount);
+            this.hudLivesText.setText(`VIDAS: ${livesIcons} (${livesCount})`);
+        }
     }
 }
