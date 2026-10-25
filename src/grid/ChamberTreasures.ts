@@ -7,79 +7,78 @@ export interface TreasureSpawnConfig {
 
 /**
  * Catálogo centralizado de cofres de tesoro para cada una de las 10 recámaras de la pirámide.
- * Garantiza que cada tesoro se ubique sobre una superficie transitable firme y sin interferir
- * con escaleras, muros impenetrables o puertas de salida.
+ * Cada cofre se ubica al fondo de una cámara sellada resguardada por una pared movediza.
  */
 export class ChamberTreasures {
     private static readonly CONFIGS: readonly TreasureSpawnConfig[] = [
         {
             chamber: 1,
             treasures: [
-                { gridX: 17, gridY: 13, value: 1000 }, // Suelo Base Nivel 0
-                { gridX: 8, gridY: 4, value: 1000 }    // Plataforma Superior Nivel 2
+                { gridX: 17, gridY: 13, value: 1000 }, // Bóveda Suelo Base Nivel 0
+                { gridX: 2, gridY: 4, value: 1000 }    // Bóveda Plataforma Superior Nivel 2
             ]
         },
         {
             chamber: 2,
             treasures: [
-                { gridX: 17, gridY: 13, value: 1000 }, // Suelo Base Nivel 0
-                { gridX: 8, gridY: 5, value: 1000 }    // Plataforma Superior Nivel 2
+                { gridX: 17, gridY: 13, value: 1000 }, // Bóveda Suelo Base Nivel 0
+                { gridX: 17, gridY: 5, value: 1000 }   // Bóveda Plataforma Superior Nivel 2
             ]
         },
         {
             chamber: 3,
             treasures: [
-                { gridX: 17, gridY: 13, value: 1000 }, // Suelo Base Nivel 0
-                { gridX: 12, gridY: 4, value: 1000 }   // Plataforma Superior Nivel 2
+                { gridX: 17, gridY: 13, value: 1000 }, // Bóveda Suelo Base Nivel 0
+                { gridX: 2, gridY: 4, value: 1000 }    // Bóveda Plataforma Superior Nivel 2
             ]
         },
         {
             chamber: 4,
             treasures: [
-                { gridX: 17, gridY: 13, value: 1000 }, // Suelo Base Nivel 0
-                { gridX: 8, gridY: 5, value: 1000 }    // Plataforma Superior Nivel 2
+                { gridX: 17, gridY: 13, value: 1000 }, // Bóveda Suelo Base Nivel 0
+                { gridX: 17, gridY: 5, value: 1000 }   // Bóveda Plataforma Superior Nivel 2
             ]
         },
         {
             chamber: 5,
             treasures: [
-                { gridX: 17, gridY: 13, value: 1000 }, // Suelo Base Nivel 0
-                { gridX: 14, gridY: 7, value: 1000 }   // Plataforma Nivel 2
+                { gridX: 17, gridY: 13, value: 1000 }, // Bóveda Suelo Base Nivel 0
+                { gridX: 17, gridY: 7, value: 1000 }   // Bóveda Plataforma Nivel 2
             ]
         },
         {
             chamber: 6,
             treasures: [
-                { gridX: 17, gridY: 13, value: 1000 }, // Suelo Base Nivel 0
-                { gridX: 14, gridY: 7, value: 1000 }   // Plataforma Nivel 2
+                { gridX: 17, gridY: 13, value: 1000 }, // Bóveda Suelo Base Nivel 0
+                { gridX: 17, gridY: 7, value: 1000 }   // Bóveda Plataforma Nivel 2
             ]
         },
         {
             chamber: 7,
             treasures: [
-                { gridX: 17, gridY: 13, value: 1000 }, // Suelo Base Nivel 0
-                { gridX: 14, gridY: 7, value: 1000 }   // Plataforma Nivel 2
+                { gridX: 17, gridY: 13, value: 1000 }, // Bóveda Suelo Base Nivel 0
+                { gridX: 17, gridY: 7, value: 1000 }   // Bóveda Plataforma Nivel 2
             ]
         },
         {
             chamber: 8,
             treasures: [
-                { gridX: 17, gridY: 13, value: 1000 }, // Suelo Base Nivel 0
-                { gridX: 15, gridY: 7, value: 1000 }   // Plataforma Nivel 2
+                { gridX: 17, gridY: 13, value: 1000 }, // Bóveda Suelo Base Nivel 0
+                { gridX: 17, gridY: 7, value: 1000 }   // Bóveda Plataforma Nivel 2
             ]
         },
         {
             chamber: 9,
             treasures: [
-                { gridX: 17, gridY: 13, value: 1000 }, // Suelo Base Nivel 0
-                { gridX: 14, gridY: 7, value: 1000 }   // Plataforma Nivel 2
+                { gridX: 17, gridY: 13, value: 1000 }, // Bóveda Suelo Base Nivel 0
+                { gridX: 17, gridY: 7, value: 1000 }   // Bóveda Plataforma Nivel 2
             ]
         },
         {
             chamber: 10,
             treasures: [
-                { gridX: 17, gridY: 13, value: 1000 }, // Suelo Base Nivel 0
-                { gridX: 14, gridY: 4, value: 1000 }   // Plataforma Superior Nivel 2
+                { gridX: 17, gridY: 13, value: 1000 }, // Bóveda Suelo Base Nivel 0
+                { gridX: 2, gridY: 4, value: 1000 }    // Bóveda Plataforma Superior Nivel 2
             ]
         }
     ];
@@ -90,10 +89,9 @@ export class ChamberTreasures {
     public static createTreasuresForChamber(chamberNumber: number): Treasure[] {
         const config = this.CONFIGS.find((c) => c.chamber === chamberNumber);
         if (!config) {
-            // Fallback por defecto si no coincide
             return [
                 new Treasure(17, 13, 1000, `ch${chamberNumber}_t1`),
-                new Treasure(8, 4, 1000, `ch${chamberNumber}_t2`)
+                new Treasure(2, 4, 1000, `ch${chamberNumber}_t2`)
             ];
         }
 
@@ -109,4 +107,3 @@ export class ChamberTreasures {
         return this.CONFIGS.find((c) => c.chamber === chamberNumber);
     }
 }
-

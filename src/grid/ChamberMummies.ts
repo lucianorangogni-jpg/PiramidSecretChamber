@@ -16,7 +16,7 @@ export interface MummySpawnConfig {
 
 /**
  * Catálogo centralizado de patrullas de momias para cada recámara de la pirámide.
- * Define puntos de spawn, cotas horizontales y dirección inicial de patrulla.
+ * Define puntos de spawn, cotas horizontales y dirección inicial de patrulla respetando las paredes movedizas.
  */
 export class ChamberMummies {
     private static readonly CONFIGS: readonly MummySpawnConfig[] = [
@@ -24,10 +24,10 @@ export class ChamberMummies {
             chamber: 1,
             mummies: [
                 {
-                    x: 384, // Columna 12
-                    y: 160, // Plataforma Nivel 2 (fila 5 = 160 px)
-                    minX: 112, // Columna 3.5
-                    maxX: 464, // Columna 14.5
+                    x: 350,
+                    y: 160, // Plataforma Nivel 2
+                    minX: 200, // Fuera de la bóveda (muro en col 4)
+                    maxX: 464,
                     direction: Direction.Right
                 }
             ]
@@ -36,10 +36,10 @@ export class ChamberMummies {
             chamber: 2,
             mummies: [
                 {
-                    x: 400, // Columna 12.5
-                    y: 192, // Plataforma Nivel 2 (fila 6 = 192 px)
-                    minX: 144, // Columna 4.5
-                    maxX: 528, // Columna 16.5
+                    x: 280,
+                    y: 192, // Plataforma Nivel 2
+                    minX: 144,
+                    maxX: 400, // Fuera de la bóveda (muro en col 15)
                     direction: Direction.Right
                 }
             ]
@@ -50,7 +50,7 @@ export class ChamberMummies {
                 {
                     x: 350,
                     y: 160,
-                    minX: 112,
+                    minX: 200,
                     maxX: 464,
                     direction: Direction.Left
                 }
@@ -60,10 +60,10 @@ export class ChamberMummies {
             chamber: 4,
             mummies: [
                 {
-                    x: 320,
+                    x: 280,
                     y: 192,
                     minX: 176,
-                    maxX: 528,
+                    maxX: 400,
                     direction: Direction.Right
                 }
             ]
@@ -74,7 +74,7 @@ export class ChamberMummies {
                 {
                     x: 350,
                     y: 256,
-                    minX: 112,
+                    minX: 200,
                     maxX: 528,
                     direction: Direction.Left
                 }
@@ -84,10 +84,10 @@ export class ChamberMummies {
             chamber: 6,
             mummies: [
                 {
-                    x: 320,
+                    x: 280,
                     y: 256,
-                    minX: 112,
-                    maxX: 496,
+                    minX: 144,
+                    maxX: 400,
                     direction: Direction.Right
                 }
             ]
@@ -96,9 +96,9 @@ export class ChamberMummies {
             chamber: 7,
             mummies: [
                 {
-                    x: 320,
+                    x: 350,
                     y: 256,
-                    minX: 112,
+                    minX: 200,
                     maxX: 496,
                     direction: Direction.Left
                 }
@@ -108,10 +108,10 @@ export class ChamberMummies {
             chamber: 8,
             mummies: [
                 {
-                    x: 320,
+                    x: 280,
                     y: 256,
-                    minX: 80,
-                    maxX: 528,
+                    minX: 144,
+                    maxX: 400,
                     direction: Direction.Right
                 }
             ]
@@ -120,10 +120,10 @@ export class ChamberMummies {
             chamber: 9,
             mummies: [
                 {
-                    x: 320,
+                    x: 280,
                     y: 256,
-                    minX: 80,
-                    maxX: 528,
+                    minX: 144,
+                    maxX: 400,
                     direction: Direction.Left
                 }
             ]
@@ -132,9 +132,9 @@ export class ChamberMummies {
             chamber: 10,
             mummies: [
                 {
-                    x: 320,
+                    x: 350,
                     y: 160,
-                    minX: 112,
+                    minX: 200,
                     maxX: 464,
                     direction: Direction.Right
                 }
@@ -150,9 +150,9 @@ export class ChamberMummies {
         if (!config) {
             return [
                 new Mummy(
-                    384,
+                    350,
                     160,
-                    112,
+                    200,
                     464,
                     Direction.Right,
                     `ch${chamberNumber}_m1`,
@@ -175,4 +175,3 @@ export class ChamberMummies {
         );
     }
 }
-

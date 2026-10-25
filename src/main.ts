@@ -24,6 +24,9 @@ const config: Phaser.Types.Core.GameConfig = {
             debug: false
         }
     },
+    input: {
+        gamepad: true // Habilita la Gamepad API en Phaser
+    },
     scene: [TitleScene, GameScene]
 };
 

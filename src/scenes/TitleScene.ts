@@ -4,6 +4,7 @@ import { RoomGrid } from '../grid/RoomGrid.ts';
 import { TileGraphics } from '../graphics/TileGraphics.ts';
 import { PlayerGraphics } from '../graphics/PlayerGraphics.ts';
 import { TitleMenuModel, TitleMenuOption } from './TitleMenuModel.ts';
+import { GamepadManager } from '../input/GamepadManager.ts';
 
 export { TitleMenuOption };
 
@@ -106,13 +107,13 @@ export class TitleScene extends Phaser.Scene {
             color: '#875f2d'
         }).setOrigin(0.5);
 
-        this.add.text(width / 2, 435, 'FLECHAS [↑][↓]: ELEGIR   ENTER/ESPACIO: CONFIRMAR', {
+        this.add.text(width / 2, 435, 'FLECHAS/JOYSTICK [↑][↓]: ELEGIR   ENTER/ESPACIO/BOTÓN: CONFIRMAR', {
             fontFamily: 'Courier',
             fontSize: '13px',
             color: '#aa8c5f'
         }).setOrigin(0.5);
 
-        this.add.text(width / 2, 455, 'FLECHAS [←][→]: CAMBIAR RECÁMARA (1 - 10)', {
+        this.add.text(width / 2, 455, 'FLECHAS/JOYSTICK [←][→]: CAMBIAR RECÁMARA (1 - 10)', {
             fontFamily: 'Courier',
             fontSize: '13px',
             color: '#aa8c5f'
@@ -134,11 +135,12 @@ export class TitleScene extends Phaser.Scene {
             this.updateDisplay();
         }
 
-        const isUp = !!this.cursors?.up.isDown;
-        const isDown = !!this.cursors?.down.isDown;
-        const isLeft = !!this.cursors?.left.isDown;
-        const isRight = !!this.cursors?.right.isDown;
-        const isConfirm = !!(this.enterKey?.isDown || this.spaceKey?.isDown);
+        const pad = GamepadManager.pollMenuInput(this);
+        const isUp = !!this.cursors?.up.isDown || pad.up;
+        const isDown = !!this.cursors?.down.isDown || pad.down;
+        const isLeft = !!this.cursors?.left.isDown || pad.left;
+        const isRight = !!this.cursors?.right.isDown || pad.right;
+        const isConfirm = !!(this.enterKey?.isDown || this.spaceKey?.isDown || pad.confirm);
 
         const upJustPressed = isUp && !this.prevUp;
         const downJustPressed = isDown && !this.prevDown;

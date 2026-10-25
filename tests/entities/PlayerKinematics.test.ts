@@ -1,7 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { PlayerConstants } from '../../src/entities/PlayerConstants.ts';
-import { GameConstants } from '../../src/core/GameConstants.ts';
 
 describe('Player Kinematics & Rules Specs', () => {
     it('debe definir las dimensiones de hitbox apropiadas para pixel art de 32x32', () => {
@@ -33,13 +32,45 @@ describe('Player Kinematics & Rules Specs', () => {
         assert.strictEqual(yEnd, 0);
     });
 
-    it('la distancia de caída segura máxima debe ser 5.5 tiles (176 px)', () => {
-        assert.strictEqual(PlayerConstants.MAX_SAFE_FALL_DISTANCE, 5.5 * GameConstants.TILE_SIZE);
-        assert.strictEqual(PlayerConstants.MAX_SAFE_FALL_DISTANCE, 176);
+    it('la distancia de caída segura máxima debe ser exactamente igual a la altura de salto (56 px) [US-023]', () => {
+        assert.strictEqual(PlayerConstants.MAX_SAFE_FALL_DISTANCE, PlayerConstants.JUMP_HEIGHT_PIXELS);
+        assert.strictEqual(PlayerConstants.MAX_SAFE_FALL_DISTANCE, 56);
+    });
+
+    it('regla de dificultad: cualquier caída superior a la altura de salto (56 px) o entre plataformas de nivel 1+ es letal', () => {
+        const evaluateLethalFall = (fallDistance: number, startLevel: number, landLevel: number): boolean => {
+            if (fallDistance > PlayerConstants.MAX_SAFE_FALL_DISTANCE) {
+                return true;
+            }
+            if (startLevel !== -1 && landLevel !== -1 && startLevel > landLevel) {
+                return true;
+            }
+            return false;
+        };
+
+        // 1. Salto en la misma plataforma (distancia 0 px) -> Seguro
+        assert.strictEqual(evaluateLethalFall(0, 0, 0), false);
+        assert.strictEqual(evaluateLethalFall(0, 1, 1), false);
+
+        // 2. Pequeño desnivel de 1 baldosa (32 px <= 56 px) en mismo nivel -> Seguro
+        assert.strictEqual(evaluateLethalFall(32, -1, -1), false);
+
+        // 3. Caída justo en el límite de salto (56 px) -> Seguro
+        assert.strictEqual(evaluateLethalFall(56, -1, -1), false);
+
+        // 4. Caída superior a la altura de salto (ej. 64 px, 128 px) -> Letal
+        assert.strictEqual(evaluateLethalFall(57, -1, -1), true);
+        assert.strictEqual(evaluateLethalFall(64, -1, -1), true);
+
+        // 5. Caída por hueco desde Plataforma Nivel 1 a Suelo Nivel 0 (160 px) -> Letal
+        assert.strictEqual(evaluateLethalFall(160, 1, 0), true);
+
+        // 6. Caída por hueco desde Plataforma Nivel 2 a Nivel 1 (128 px) o Nivel 0 (288 px) -> Letal
+        assert.strictEqual(evaluateLethalFall(128, 2, 1), true);
+        assert.strictEqual(evaluateLethalFall(288, 2, 0), true);
     });
 
     it('el jugador debe iniciar con 3 vidas', () => {
         assert.strictEqual(PlayerConstants.INITIAL_LIVES, 3);
     });
 });
-

@@ -1,5 +1,3 @@
-import { GameConstants } from '../core/GameConstants.ts';
-
 /**
  * Constantes cinemáticas, físicas y de balanceo arcade del jugador.
  * Desacopladas de Phaser para permitir pruebas unitarias matemáticas puras.
@@ -17,8 +15,7 @@ export const PlayerConstants = {
 
     GRAVITY: 0.5,
     MAX_FALL_SPEED: 8.0,
-    MAX_SAFE_FALL_DISTANCE: 5.5 * GameConstants.TILE_SIZE, // 176 px (5.5 tiles)
+    MAX_SAFE_FALL_DISTANCE: 56, // Máxima distancia de caída segura igual a la altura de salto (56 px)
 
     INITIAL_LIVES: 3
 } as const;
-

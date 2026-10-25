@@ -4,6 +4,7 @@ import { Direction } from '../core/Direction.ts';
 import { RoomGrid } from '../grid/RoomGrid.ts';
 import { PlayerState } from './PlayerState.ts';
 import { PlayerConstants } from './PlayerConstants.ts';
+import { GamepadManager, type PlayerInputState } from '../input/GamepadManager.ts';
 
 /**
  * Entidad del arqueólogo protagonista.
@@ -124,8 +125,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     /**
      * Bucle de actualización principal con simulación determinista.
+     * Soporta teclado (flechas y espacio) y joystick/gamepad físico (stick, D-pad y botón de acción).
+     * La tecla o dirección ARRIBA NO se usa para saltar.
      */
-    public updateWithGrid(grid: RoomGrid): void {
+    public updateWithGrid(grid: RoomGrid, customInput?: PlayerInputState): void {
         if (this.playerState === PlayerState.Eliminated) {
             this.setTexture('player_dead');
             return;
@@ -133,11 +136,29 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
         this.animationTimer++;
 
-        const isLeftDown = !!this.cursors?.left.isDown;
-        const isRightDown = !!this.cursors?.right.isDown;
-        const isUpDown = !!this.cursors?.up.isDown;
-        const isDownDown = !!this.cursors?.down.isDown;
-        const isJumpPressed = !!(this.cursors?.space.isDown || (isUpDown && this.playerState !== PlayerState.Climbing));
+        let isLeftDown: boolean;
+        let isRightDown: boolean;
+        let isUpDown: boolean;
+        let isDownDown: boolean;
+        let isJumpPressed: boolean;
+
+        if (customInput) {
+            isLeftDown = customInput.left;
+            isRightDown = customInput.right;
+            isUpDown = customInput.up;
+            isDownDown = customInput.down;
+            isJumpPressed = customInput.jump;
+        } else {
+            const pad = GamepadManager.pollPlayerInput(this.scene);
+            isLeftDown = !!this.cursors?.left.isDown || pad.left;
+            isRightDown = !!this.cursors?.right.isDown || pad.right;
+            isUpDown = !!this.cursors?.up.isDown || pad.up;
+            isDownDown = !!this.cursors?.down.isDown || pad.down;
+
+            // REGLA ESTRICTA: El salto SOLO se inicia con Espacio o botón de joystick.
+            // La dirección ARRIBA NO se usa para saltar.
+            isJumpPressed = !!this.cursors?.space.isDown || pad.jump;
+        }
 
         switch (this.playerState) {
             case PlayerState.Idle:
@@ -376,6 +397,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             } else {
                 this.playerState = PlayerState.Falling;
                 this.verticalVelocity = 0;
+                this.fallStartY = this.jumpStartY;
+                this.fallStartPlatformLevel = grid.getPlatformLevel(this.jumpStartY - 32);
                 return;
             }
         } else {
@@ -396,6 +419,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             } else {
                 this.playerState = PlayerState.Falling;
                 this.verticalVelocity = 0;
+                this.fallStartY = this.jumpStartY;
+                this.fallStartPlatformLevel = grid.getPlatformLevel(this.jumpStartY - 32);
             }
         }
     }
@@ -440,12 +465,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         const landLevel = grid.getPlatformLevel(landingY - 32);
         const startLevel = this.fallStartPlatformLevel;
 
+        // Dificultad [US-023]: Si cae de una altura mayor a la que puede saltar (56 px)
+        // o si cae por algún espacio de plataformas de nivel 1 o superior hacia un nivel inferior, pierde 1 vida.
         let isLethal = false;
-        if (startLevel !== -1 && landLevel !== -1) {
-            if (startLevel - landLevel >= 2) {
-                isLethal = true;
-            }
-        } else if (fallDistance > Player.MAX_SAFE_FALL_DISTANCE) {
+        if (fallDistance > Player.MAX_SAFE_FALL_DISTANCE) {
+            isLethal = true;
+        } else if (startLevel !== -1 && landLevel !== -1 && startLevel > landLevel) {
             isLethal = true;
         }
 
