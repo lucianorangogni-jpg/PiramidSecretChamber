@@ -121,5 +121,47 @@ describe('Mummy Enemy Patrol & Jump Mechanics Specs [US-021]', () => {
             }
         }
     });
+
+    it('las recámaras 1, 2, 3 y 4 deben tener una momia adicional en Nivel 1 que patrulla sobre suelo firme sin caer a vacíos', () => {
+        for (let ch = 1; ch <= 4; ch++) {
+            const mummies = ChamberMummies.createMummiesForChamber(ch);
+            assert.strictEqual(mummies.length, 2, `Recámara ${ch} debe tener exactamente 2 momias`);
+
+            const mummyLevel2 = mummies[0];
+            const mummyLevel1 = mummies[1];
+
+            // 1. La momia de Nivel 1 debe estar más abajo (mayor Y) que la de Nivel 2
+            assert.ok(
+                mummyLevel1.y > mummyLevel2.y,
+                `Recámara ${ch}: la momia de Nivel 1 (y=${mummyLevel1.y}) debe estar debajo del Nivel 2 (y=${mummyLevel2.y})`
+            );
+
+            // 2. La velocidad de ambas momias debe ser idéntica
+            assert.strictEqual(
+                mummyLevel1.speed,
+                mummyLevel2.speed,
+                `Recámara ${ch}: velocidad de momia Nivel 1 (${mummyLevel1.speed}) debe ser idéntica a Nivel 2 (${mummyLevel2.speed})`
+            );
+
+            // 3. Sus cotas de patrulla (minX y maxX) no deben sobrepasar hacia el vacío
+            // En recámaras 1, 3 y 4 el vacío empieza en columna 11 (x=352)
+            // En recámara 2 el vacío está en columna 12 (x=384)
+            if (ch === 1 || ch === 3 || ch === 4) {
+                assert.ok(
+                    mummyLevel1.maxX <= 336,
+                    `Recámara ${ch}: maxX (${mummyLevel1.maxX}) debe detenerse antes del foso en columna 11`
+                );
+                assert.ok(
+                    mummyLevel1.minX >= 64,
+                    `Recámara ${ch}: minX (${mummyLevel1.minX}) debe comenzar sobre plataforma sólida (col 2+)`
+                );
+            } else if (ch === 2) {
+                assert.ok(
+                    mummyLevel1.maxX <= 368,
+                    `Recámara 2: maxX (${mummyLevel1.maxX}) debe detenerse antes del foso en columna 12`
+                );
+            }
+        }
+    });
 });
 

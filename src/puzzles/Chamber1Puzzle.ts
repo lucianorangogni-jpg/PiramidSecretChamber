@@ -1,13 +1,9 @@
 import { GameConstants } from '../core/GameConstants.ts';
 import { Mummy } from '../entities/Mummy.ts';
 import { Treasure } from '../entities/Treasure.ts';
+import type { IChamberPuzzle, PuzzleEventNotification } from './IChamberPuzzle.ts';
 
-export interface PuzzleEventNotification {
-    readonly text: string;
-    readonly points: number;
-    readonly x: number;
-    readonly y: number;
-}
+export type { PuzzleEventNotification };
 
 /**
  * =========================================================================================
@@ -53,11 +49,12 @@ export interface PuzzleEventNotification {
  *      dorada durante 5 segundos / 300 frames), permitiendo caminar a su lado sin perder vidas.
  *    - En el descansillo intermedio del Nivel 1 (12, 8) se materializa la GEMA SAGRADA DE RA,
  *      un tesoro radiante que otorga +1000 PUNTOS al ser recolectado.
- * PISTA DIEGÉTICA: Grabada en el mural de bajorrelieve del Nivel 1:
- *    [MOMIA] + [SALTO 4x (IIII)] -> [MOMIA PETRIFICADA] -> [GEMA SAGRADA ☥]
+ * PISTA DIEGÉTICA: Grabada en el mural de bajorrelieve del Nivel 2 (pared superior sobre la patrulla de la momia):
+ *    [SALTO PARABÓLICO 4x SOBRE LA MOMIA (IIII)] -> [MOMIA PETRIFICADA] -> [GEMA SAGRADA ☥]
  * =========================================================================================
  */
-export class Chamber1Puzzle {
+export class Chamber1Puzzle implements IChamberPuzzle {
+    public readonly chamberNumber: number = 1;
     public static readonly REQUIRED_DOOR_CYCLES = 3;
     public static readonly REQUIRED_MUMMY_JUMPS = 4;
     public static readonly PETRIFY_DURATION_FRAMES = 5 * GameConstants.TARGET_FPS; // 300 frames (5s)

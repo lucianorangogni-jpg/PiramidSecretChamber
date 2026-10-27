@@ -25,10 +25,17 @@ export class ChamberMummies {
             mummies: [
                 {
                     x: 350,
-                    y: 160, // Plataforma Nivel 2
+                    y: 160, // Plataforma Nivel 2 (fila 5)
                     minX: 200, // Fuera de la bóveda (muro en col 4)
                     maxX: 464,
                     direction: Direction.Right
+                },
+                {
+                    x: 240,
+                    y: 288, // Plataforma Nivel 1 (fila 9)
+                    minX: 80,  // Columna 2 (suelo firme)
+                    maxX: 336, // Columna 10 (límite antes del foso en col 11)
+                    direction: Direction.Left
                 }
             ]
         },
@@ -37,10 +44,17 @@ export class ChamberMummies {
             mummies: [
                 {
                     x: 280,
-                    y: 192, // Plataforma Nivel 2
+                    y: 192, // Plataforma Nivel 2 (fila 6)
                     minX: 144,
                     maxX: 400, // Fuera de la bóveda (muro en col 15)
                     direction: Direction.Right
+                },
+                {
+                    x: 240,
+                    y: 320, // Plataforma Nivel 1 (fila 10)
+                    minX: 80,  // Columna 2 (suelo firme)
+                    maxX: 368, // Columna 11 (límite antes del foso en col 12)
+                    direction: Direction.Left
                 }
             ]
         },
@@ -49,10 +63,17 @@ export class ChamberMummies {
             mummies: [
                 {
                     x: 350,
-                    y: 160,
+                    y: 160, // Plataforma Nivel 2 (fila 5)
                     minX: 200,
                     maxX: 464,
                     direction: Direction.Left
+                },
+                {
+                    x: 220,
+                    y: 288, // Plataforma Nivel 1 (fila 9)
+                    minX: 80,  // Columna 2 (suelo firme)
+                    maxX: 336, // Columna 10 (límite antes del foso en col 11)
+                    direction: Direction.Right
                 }
             ]
         },
@@ -61,10 +82,17 @@ export class ChamberMummies {
             mummies: [
                 {
                     x: 280,
-                    y: 192,
+                    y: 192, // Plataforma Nivel 2 (fila 6)
                     minX: 176,
                     maxX: 400,
                     direction: Direction.Right
+                },
+                {
+                    x: 240,
+                    y: 320, // Plataforma Nivel 1 (fila 10)
+                    minX: 80,  // Columna 2 (suelo firme)
+                    maxX: 336, // Columna 10 (límite antes del foso en col 11)
+                    direction: Direction.Left
                 }
             ]
         },

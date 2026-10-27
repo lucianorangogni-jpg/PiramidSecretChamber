@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import zlib from 'zlib';
 
-// 1. Helper functions for PNG decoding and encoding
 function crc32(buf) {
     let c = ~0;
     for (let i = 0; i < buf.length; i++) {
@@ -97,13 +96,9 @@ function decodePNG(filePath) {
     return { width, height, data: raw };
 }
 
-// 2. Load the Egyptian Hieroglyphs image
 const imgPath = path.resolve('public/jeroglificosEgipcios_2.png');
-console.log('Loading hieroglyphs image from:', imgPath);
 const src = decodePNG(imgPath);
-console.log(`Decoded source image: ${src.width}x${src.height}`);
 
-// Helper to extract a bounding box, turning the dark ink into gold or stone relief
 function extractGlyph(x1, y1, x2, y2, targetW, targetH, inkColor = { r: 217, g: 171, b: 91, a: 255 }) {
     const srcW = x2 - x1 + 1;
     const srcH = y2 - y1 + 1;
@@ -120,7 +115,6 @@ function extractGlyph(x1, y1, x2, y2, targetW, targetH, inkColor = { r: 217, g: 
             const b = src.data[sIdx + 2];
             const brightness = (r + g + b) / 3;
 
-            // In jeroglificosEgipcios_2.png, glyphs are dark ink (brightness < 80..110)
             const dIdx = (dy * targetW + dx) * 4;
             if (brightness < 110) {
                 const factor = Math.max(0, Math.min(1, (110 - brightness) / 70));
@@ -139,119 +133,94 @@ function extractGlyph(x1, y1, x2, y2, targetW, targetH, inkColor = { r: 217, g: 
     return out;
 }
 
-// Ensure target directories exist
 const assetsDir = path.resolve('public/assets');
-if (!fs.existsSync(assetsDir)) {
-    fs.mkdirSync(assetsDir, { recursive: true });
-}
+if (!fs.existsSync(assetsDir)) fs.mkdirSync(assetsDir, { recursive: true });
 
-// 3. Extract key authentic hieroglyphs
-// A. Single Chest from Col 7 (Box 1: x: 1132..1184, y: 294..331)
-const glyphSingleChest = extractGlyph(1132, 294, 1184, 331, 14, 14, { r: 245, g: 195, b: 85, a: 255 });
-fs.writeFileSync(path.join(assetsDir, 'glyph_chest.png'), writePNG(14, 14, glyphSingleChest));
-
-// B. Authentic Ankh (Key of Life) from Col 1 (x: 79..166, y: 526..628)
-const glyphAnkh = extractGlyph(79, 526, 166, 628, 12, 18, { r: 255, g: 220, b: 90, a: 255 });
-fs.writeFileSync(path.join(assetsDir, 'glyph_ankh.png'), writePNG(12, 18, glyphAnkh));
-
-// C. Authentic III Strokes from Col 7 (x: 1143..1207, y: 905..929)
-const glyphStrokesIII = extractGlyph(1143, 905, 1207, 929, 14, 16, { r: 255, g: 225, b: 100, a: 255 });
-fs.writeFileSync(path.join(assetsDir, 'glyph_strokes_iii.png'), writePNG(14, 16, glyphStrokesIII));
-
-// D. Authentic Mummy / Osiris from Col 4 (x: 598..690, y: 428..575)
-const glyphMummy = extractGlyph(598, 428, 690, 575, 14, 20, { r: 190, g: 160, b: 110, a: 255 });
-fs.writeFileSync(path.join(assetsDir, 'glyph_mummy.png'), writePNG(14, 20, glyphMummy));
-
-// E. Jumping / Walking legs from Col 6 (x: 946..1063, y: 1050..1142)
-const glyphJump = extractGlyph(946, 1050, 1063, 1142, 14, 16, { r: 245, g: 195, b: 95, a: 255 });
-fs.writeFileSync(path.join(assetsDir, 'glyph_jump.png'), writePNG(14, 16, glyphJump));
-
-// F. Eye of Horus / Sacred Gem of Ra from Col 5 (x: 774..870, y: 563..650)
+// Glyphs extraídos
+const glyphSingleChest = extractGlyph(1132, 294, 1184, 331, 14, 14, { r: 235, g: 185, b: 90, a: 245 });
+const glyphAnkh = extractGlyph(79, 526, 166, 628, 12, 18, { r: 250, g: 210, b: 95, a: 250 });
+const glyphMummy = extractGlyph(598, 428, 690, 575, 14, 20, { r: 185, g: 150, b: 100, a: 240 });
 const glyphEyeGem = extractGlyph(774, 563, 870, 650, 18, 16, { r: 60, g: 235, b: 255, a: 255 });
-fs.writeFileSync(path.join(assetsDir, 'glyph_eye_gem.png'), writePNG(18, 16, glyphEyeGem));
 
-console.log('Individual glyphs extracted to public/assets/');
-
-// 4. Compose High-Quality Diegetic Murals
-// Mural 1: [Cofre] + [Cofre] + [Llave] -> [III] -> [Cofre Sagrado ☥]
-// Dimensions: 128 x 32 px
-function createMuralPuzzle1() {
-    const W = 128;
-    const H = 32;
-    const buf = Buffer.alloc(W * H * 4);
-
-    // Stone tablet background and low-relief border
-    for (let y = 0; y < H; y++) {
-        for (let x = 0; x < W; x++) {
-            const idx = (y * W + x) * 4;
-            const isBorder = (x <= 1 || x >= W - 2 || y <= 1 || y >= H - 2);
-            if (isBorder) {
-                buf[idx] = 68; buf[idx + 1] = 42; buf[idx + 2] = 20; buf[idx + 3] = 255;
-            } else {
-                buf[idx] = 34; buf[idx + 1] = 20; buf[idx + 2] = 8; buf[idx + 3] = 230;
-            }
-        }
-    }
-
-    function blit(glyphData, gw, gh, targetX, targetY) {
-        for (let gy = 0; gy < gh; gy++) {
-            for (let gx = 0; gx < gw; gx++) {
-                const sIdx = (gy * gw + gx) * 4;
-                const alpha = glyphData[sIdx + 3] / 255;
-                if (alpha > 0.05) {
-                    const tx = targetX + gx;
-                    const ty = targetY + gy;
-                    if (tx >= 0 && tx < W && ty >= 0 && ty < H) {
-                        const dIdx = (ty * W + tx) * 4;
-                        buf[dIdx] = Math.round(glyphData[sIdx] * alpha + buf[dIdx] * (1 - alpha));
-                        buf[dIdx + 1] = Math.round(glyphData[sIdx + 1] * alpha + buf[dIdx + 1] * (1 - alpha));
-                        buf[dIdx + 2] = Math.round(glyphData[sIdx + 2] * alpha + buf[dIdx + 2] * (1 - alpha));
-                        buf[dIdx + 3] = 255;
+function blitWithRelief(buf, W, H, glyphData, gw, gh, targetX, targetY) {
+    // 1. Sombra cincelada
+    for (let gy = 0; gy < gh; gy++) {
+        for (let gx = 0; gx < gw; gx++) {
+            const sIdx = (gy * gw + gx) * 4;
+            const alpha = glyphData[sIdx + 3] / 255;
+            if (alpha > 0.15) {
+                const tx = targetX + gx + 1;
+                const ty = targetY + gy + 1;
+                if (tx >= 0 && tx < W && ty >= 0 && ty < H) {
+                    const dIdx = (ty * W + tx) * 4;
+                    if (buf[dIdx + 3] === 0) {
+                        buf[dIdx] = 30;
+                        buf[dIdx + 1] = 16;
+                        buf[dIdx + 2] = 6;
+                        buf[dIdx + 3] = Math.round(140 * alpha);
                     }
                 }
             }
         }
     }
-
-    function drawSymbol(x, y, type) {
-        if (type === '+') {
-            for (let dy = -3; dy <= 3; dy++) {
-                const idx = ((y + dy) * W + x) * 4;
-                buf[idx] = 220; buf[idx+1] = 175; buf[idx+2] = 95; buf[idx+3] = 255;
-            }
-            for (let dx = -3; dx <= 3; dx++) {
-                const idx = (y * W + (x + dx)) * 4;
-                buf[idx] = 220; buf[idx+1] = 175; buf[idx+2] = 95; buf[idx+3] = 255;
-            }
-        } else if (type === '->') {
-            for (let dx = -3; dx <= 3; dx++) {
-                const idx = (y * W + (x + dx)) * 4;
-                buf[idx] = 220; buf[idx+1] = 175; buf[idx+2] = 95; buf[idx+3] = 255;
-            }
-            for (let dy = -2; dy <= 2; dy++) {
-                const idx = ((y + dy) * W + (x + 2)) * 4;
-                buf[idx] = 220; buf[idx+1] = 175; buf[idx+2] = 95; buf[idx+3] = 255;
+    // 2. Trazo en relieve
+    for (let gy = 0; gy < gh; gy++) {
+        for (let gx = 0; gx < gw; gx++) {
+            const sIdx = (gy * gw + gx) * 4;
+            const alpha = glyphData[sIdx + 3] / 255;
+            if (alpha > 0.08) {
+                const tx = targetX + gx;
+                const ty = targetY + gy;
+                if (tx >= 0 && tx < W && ty >= 0 && ty < H) {
+                    const dIdx = (ty * W + tx) * 4;
+                    buf[dIdx] = glyphData[sIdx];
+                    buf[dIdx + 1] = glyphData[sIdx + 1];
+                    buf[dIdx + 2] = glyphData[sIdx + 2];
+                    buf[dIdx + 3] = glyphData[sIdx + 3];
+                }
             }
         }
     }
+}
 
-    // 1. Cofre 1 en x: 6, y: 9
-    blit(glyphSingleChest, 14, 14, 6, 9);
-    // + en x: 26, y: 16
-    drawSymbol(26, 16, '+');
-    // 2. Cofre 2 en x: 33, y: 9
-    blit(glyphSingleChest, 14, 14, 33, 9);
-    // + en x: 53, y: 16
-    drawSymbol(53, 16, '+');
-    // 3. Llave Ankh en x: 60, y: 7
-    blit(glyphAnkh, 12, 18, 60, 7);
-    // -> en x: 78, y: 16
-    drawSymbol(78, 16, '->');
-    // 4. III en x: 86, y: 8
-    blit(glyphStrokesIII, 14, 16, 86, 8);
-    // -> en x: 104, y: 16
-    drawSymbol(104, 16, '->');
-    // 5. Cofre Radiante Dorado del Faraón en x: 110, y: 9
+function setPixel(buf, W, H, px, py, r, g, b, a = 255) {
+    if (px >= 0 && px < W && py >= 0 && py < H) {
+        const idx = (py * W + px) * 4;
+        buf[idx] = r; buf[idx+1] = g; buf[idx+2] = b; buf[idx+3] = a;
+    }
+}
+
+function drawSymbolRelief(buf, W, H, x, y, type) {
+    const shadowColor = { r: 30, g: 16, b: 6, a: 150 };
+    const fgColor = { r: 220, g: 175, b: 95, a: 240 };
+
+    const setP = (px, py, col) => setPixel(buf, W, H, px, py, col.r, col.g, col.b, col.a);
+
+    if (type === '+') {
+        for (let dy = -3; dy <= 3; dy++) setP(x + 1, y + dy + 1, shadowColor);
+        for (let dx = -3; dx <= 3; dx++) setP(x + dx + 1, y + 1, shadowColor);
+        for (let dy = -3; dy <= 3; dy++) setP(x, y + dy, fgColor);
+        for (let dx = -3; dx <= 3; dx++) setP(x + dx, y, fgColor);
+    } else if (type === '->') {
+        for (let dx = -3; dx <= 3; dx++) setP(x + dx + 1, y + 1, shadowColor);
+        for (let dy = -2; dy <= 2; dy++) setP(x + 2 + 1, y + dy + 1, shadowColor);
+        for (let dx = -3; dx <= 3; dx++) setP(x + dx, y, fgColor);
+        for (let dy = -2; dy <= 2; dy++) setP(x + 2, y + dy, fgColor);
+    }
+}
+
+function drawStrokes(buf, W, H, startX, y, count) {
+    for (let i = 0; i < count; i++) {
+        const sx = startX + i * 4;
+        for (let dy = 0; dy < 13; dy++) {
+            setPixel(buf, W, H, sx + 1, y + dy + 1, 30, 16, 6, 160);
+            setPixel(buf, W, H, sx, y + dy, 255, 220, 100, 245);
+            setPixel(buf, W, H, sx + 1, y + dy, 240, 190, 80, 230);
+        }
+    }
+}
+
+function drawRadiantChest(buf, W, H, x, y) {
     const radiantChest = Buffer.from(glyphSingleChest);
     for (let i = 0; i < radiantChest.length; i += 4) {
         if (radiantChest[i+3] > 0) {
@@ -260,135 +229,249 @@ function createMuralPuzzle1() {
             radiantChest[i+2] = 120;
         }
     }
-    blit(radiantChest, 14, 14, 110, 9);
-    // Destello de corona / sol sobre cofre radiante
-    const sparkIdx = (6 * W + 116) * 4;
-    buf[sparkIdx] = 255; buf[sparkIdx+1] = 255; buf[sparkIdx+2] = 200; buf[sparkIdx+3] = 255;
-
-    return buf;
+    blitWithRelief(buf, W, H, radiantChest, 14, 14, x, y);
+    // Destello
+    setPixel(buf, W, H, x + 7, y - 2, 255, 255, 220, 255);
+    setPixel(buf, W, H, x + 6, y - 1, 255, 255, 220, 255);
+    setPixel(buf, W, H, x + 8, y - 1, 255, 255, 220, 255);
+    setPixel(buf, W, H, x + 7, y, 255, 255, 220, 255);
 }
 
-// Mural 2: [Momia] + [Salto IIII] -> [Momia Petrificada] -> [Gema de Ra ☥]
-// Dimensions: 128 x 32 px
-function createMuralPuzzle2() {
-    const W = 128;
-    const H = 32;
-    const buf = Buffer.alloc(W * H * 4);
-
-    // Stone tablet background and low-relief border
-    for (let y = 0; y < H; y++) {
-        for (let x = 0; x < W; x++) {
-            const idx = (y * W + x) * 4;
-            const isBorder = (x <= 1 || x >= W - 2 || y <= 1 || y >= H - 2);
-            if (isBorder) {
-                buf[idx] = 68; buf[idx + 1] = 42; buf[idx + 2] = 20; buf[idx + 3] = 255;
-            } else {
-                buf[idx] = 34; buf[idx + 1] = 20; buf[idx + 2] = 8; buf[idx + 3] = 230;
-            }
-        }
+function drawPetrifiedMummySection(buf, W, H, x, y) {
+    // Pedestal
+    for (let bx = x; bx <= x + 16; bx++) {
+        setPixel(buf, W, H, bx + 1, y + 21, 30, 16, 6, 140);
+        setPixel(buf, W, H, bx, y + 20, 180, 150, 90, 240);
     }
-
-    function blit(glyphData, gw, gh, targetX, targetY) {
-        for (let gy = 0; gy < gh; gy++) {
-            for (let gx = 0; gx < gw; gx++) {
-                const sIdx = (gy * gw + gx) * 4;
-                const alpha = glyphData[sIdx + 3] / 255;
-                if (alpha > 0.05) {
-                    const tx = targetX + gx;
-                    const ty = targetY + gy;
-                    if (tx >= 0 && tx < W && ty >= 0 && ty < H) {
-                        const dIdx = (ty * W + tx) * 4;
-                        buf[dIdx] = Math.round(glyphData[sIdx] * alpha + buf[dIdx] * (1 - alpha));
-                        buf[dIdx + 1] = Math.round(glyphData[sIdx + 1] * alpha + buf[dIdx + 1] * (1 - alpha));
-                        buf[dIdx + 2] = Math.round(glyphData[sIdx + 2] * alpha + buf[dIdx + 2] * (1 - alpha));
-                        buf[dIdx + 3] = 255;
-                    }
-                }
-            }
-        }
-    }
-
-    function drawSymbol(x, y, type) {
-        if (type === '+') {
-            for (let dy = -3; dy <= 3; dy++) {
-                const idx = ((y + dy) * W + x) * 4;
-                buf[idx] = 220; buf[idx+1] = 175; buf[idx+2] = 95; buf[idx+3] = 255;
-            }
-            for (let dx = -3; dx <= 3; dx++) {
-                const idx = (y * W + (x + dx)) * 4;
-                buf[idx] = 220; buf[idx+1] = 175; buf[idx+2] = 95; buf[idx+3] = 255;
-            }
-        } else if (type === '->') {
-            for (let dx = -3; dx <= 3; dx++) {
-                const idx = (y * W + (x + dx)) * 4;
-                buf[idx] = 220; buf[idx+1] = 175; buf[idx+2] = 95; buf[idx+3] = 255;
-            }
-            for (let dy = -2; dy <= 2; dy++) {
-                const idx = ((y + dy) * W + (x + 2)) * 4;
-                buf[idx] = 220; buf[idx+1] = 175; buf[idx+2] = 95; buf[idx+3] = 255;
-            }
-        }
-    }
-
-    // 1. Momia patrullera en x: 6, y: 6
-    blit(glyphMummy, 14, 20, 6, 6);
-    // + en x: 26, y: 16
-    drawSymbol(26, 16, '+');
-    // 2. Salto y 4 marcas IIII en x: 33, y: 8
-    blit(glyphJump, 14, 16, 33, 8);
-    // 4 marcas "IIII"
-    for (let i = 0; i < 4; i++) {
-        const mx = 51 + i * 3;
-        for (let my = 12; my <= 19; my++) {
-            const idx = (my * W + mx) * 4;
-            buf[idx] = 255; buf[idx+1] = 220; buf[idx+2] = 100; buf[idx+3] = 255;
-        }
-    }
-    // -> en x: 68, y: 16
-    drawSymbol(68, 16, '->');
-    // 3. Momia estatua dorada (petrificada) en x: 74, y: 6
     const petrifiedMummy = Buffer.from(glyphMummy);
     for (let i = 0; i < petrifiedMummy.length; i += 4) {
         if (petrifiedMummy[i+3] > 0) {
-            petrifiedMummy[i] = 255;
+            petrifiedMummy[i] = 250;
             petrifiedMummy[i+1] = 215;
-            petrifiedMummy[i+2] = 90;
+            petrifiedMummy[i+2] = 100;
         }
     }
-    blit(petrifiedMummy, 14, 20, 74, 6);
-    // -> en x: 94, y: 16
-    drawSymbol(94, 16, '->');
-    // 4. Gema Sagrada / Ojo de Ra en x: 102, y: 8
-    blit(glyphEyeGem, 18, 16, 102, 8);
+    blitWithRelief(buf, W, H, petrifiedMummy, 14, 20, x + 1, y);
+    // Destello tiempo congelado
+    setPixel(buf, W, H, x + 8, y - 3, 255, 255, 220, 255);
+    setPixel(buf, W, H, x + 7, y - 2, 255, 230, 130, 255);
+    setPixel(buf, W, H, x + 9, y - 2, 255, 230, 130, 255);
+    setPixel(buf, W, H, x + 8, y - 1, 255, 230, 130, 255);
+}
 
+function drawSacredGemSection(buf, W, H, x, y) {
+    blitWithRelief(buf, W, H, glyphEyeGem, 18, 16, x, y);
+    setPixel(buf, W, H, x + 18, y - 2, 200, 250, 255, 255);
+    setPixel(buf, W, H, x + 20, y - 1, 200, 250, 255, 255);
+    setPixel(buf, W, H, x + 17, y + 10, 200, 250, 255, 255);
+}
+
+function drawJumpOverMummy(buf, W, H, x, countStr) {
+    // Momia en x, y: 10
+    blitWithRelief(buf, W, H, glyphMummy, 14, 20, x + 8, 10);
+
+    // Arco de x a x + 30
+    for (let px = x; px <= x + 30; px++) {
+        const t = (px - x) / 30;
+        const py = Math.round(26 - 21 * 4 * t * (1 - t));
+        setPixel(buf, W, H, px + 1, py + 1, 35, 20, 8, 170);
+        setPixel(buf, W, H, px, py, 255, 225, 105, 255);
+    }
+    // Cabeza del arqueólogo en el ápice
+    setPixel(buf, W, H, x + 15, 3, 255, 240, 180, 255);
+    setPixel(buf, W, H, x + 15, 4, 240, 200, 100, 255);
+
+    // Rótulo
+    drawText(buf, W, H, x + 22, 2, countStr);
+}
+
+function drawText(buf, W, H, x, y, str) {
+    for (let i = 0; i < str.length; i++) {
+        const ch = str[i];
+        const cx = x + i * 5;
+        if (ch === '1') {
+            setPixel(buf, W, H, cx + 1, y, 255, 235, 110, 255);
+            setPixel(buf, W, H, cx + 1, y + 1, 255, 235, 110, 255);
+            setPixel(buf, W, H, cx + 1, y + 2, 255, 235, 110, 255);
+            setPixel(buf, W, H, cx + 1, y + 3, 255, 235, 110, 255);
+            setPixel(buf, W, H, cx + 1, y + 4, 255, 235, 110, 255);
+        } else if (ch === '2') {
+            for (let dx = 0; dx < 3; dx++) setPixel(buf, W, H, cx + dx, y, 255, 235, 110, 255);
+            setPixel(buf, W, H, cx + 2, y + 1, 255, 235, 110, 255);
+            for (let dx = 0; dx < 3; dx++) setPixel(buf, W, H, cx + dx, y + 2, 255, 235, 110, 255);
+            setPixel(buf, W, H, cx, y + 3, 255, 235, 110, 255);
+            for (let dx = 0; dx < 3; dx++) setPixel(buf, W, H, cx + dx, y + 4, 255, 235, 110, 255);
+        } else if (ch === '3') {
+            for (let dx = 0; dx < 3; dx++) setPixel(buf, W, H, cx + dx, y, 255, 235, 110, 255);
+            setPixel(buf, W, H, cx + 2, y + 1, 255, 235, 110, 255);
+            for (let dx = 0; dx < 3; dx++) setPixel(buf, W, H, cx + dx, y + 2, 255, 235, 110, 255);
+            setPixel(buf, W, H, cx + 2, y + 3, 255, 235, 110, 255);
+            for (let dx = 0; dx < 3; dx++) setPixel(buf, W, H, cx + dx, y + 4, 255, 235, 110, 255);
+        } else if (ch === '4') {
+            setPixel(buf, W, H, cx, y, 255, 235, 110, 255);
+            setPixel(buf, W, H, cx + 2, y, 255, 235, 110, 255);
+            setPixel(buf, W, H, cx, y + 1, 255, 235, 110, 255);
+            setPixel(buf, W, H, cx + 2, y + 1, 255, 235, 110, 255);
+            for (let dx = 0; dx < 3; dx++) setPixel(buf, W, H, cx + dx, y + 2, 255, 235, 110, 255);
+            setPixel(buf, W, H, cx + 2, y + 3, 255, 235, 110, 255);
+            setPixel(buf, W, H, cx + 2, y + 4, 255, 235, 110, 255);
+        } else if (ch === 'x') {
+            setPixel(buf, W, H, cx, y + 2, 255, 235, 110, 255);
+            setPixel(buf, W, H, cx + 2, y + 2, 255, 235, 110, 255);
+            setPixel(buf, W, H, cx + 1, y + 3, 255, 235, 110, 255);
+            setPixel(buf, W, H, cx, y + 4, 255, 235, 110, 255);
+            setPixel(buf, W, H, cx + 2, y + 4, 255, 235, 110, 255);
+        }
+    }
+}
+
+// -------------------------------------------------------------
+// RECÁMARA 1
+// -------------------------------------------------------------
+function createMuralCh1P1() {
+    const W = 128, H = 32;
+    const buf = Buffer.alloc(W * H * 4);
+    blitWithRelief(buf, W, H, glyphSingleChest, 14, 14, 6, 9);
+    drawSymbolRelief(buf, W, H, 26, 16, '+');
+    blitWithRelief(buf, W, H, glyphSingleChest, 14, 14, 33, 9);
+    drawSymbolRelief(buf, W, H, 53, 16, '+');
+    blitWithRelief(buf, W, H, glyphAnkh, 12, 18, 60, 7);
+    drawSymbolRelief(buf, W, H, 78, 16, '->');
+    drawStrokes(buf, W, H, 86, 9, 3);
+    drawSymbolRelief(buf, W, H, 102, 16, '->');
+    drawRadiantChest(buf, W, H, 110, 9);
     return buf;
 }
 
-const mural1Data = createMuralPuzzle1();
-fs.writeFileSync(path.join(assetsDir, 'mural_puzzle_1.png'), writePNG(128, 32, mural1Data));
-
-const mural2Data = createMuralPuzzle2();
-fs.writeFileSync(path.join(assetsDir, 'mural_puzzle_2.png'), writePNG(128, 32, mural2Data));
-
-console.log('Generated authentic murals: mural_puzzle_1.png and mural_puzzle_2.png');
-
-// 5. Generate Seamless Background Texture for the Tomb Wall
-// Crop columns 38..1262 (w: 1224) and 35..1265 (h: 1230)
-const cropX1 = 38, cropX2 = 1262;
-const cropY1 = 35, cropY2 = 1265;
-const cropW = cropX2 - cropX1 + 1;
-const cropH = cropY2 - cropY1 + 1;
-
-const bgData = Buffer.alloc(cropW * cropH * 4);
-for (let y = 0; y < cropH; y++) {
-    for (let x = 0; x < cropW; x++) {
-        const sIdx = ((cropY1 + y) * src.width + (cropX1 + x)) * 4;
-        const dIdx = (y * cropW + x) * 4;
-        bgData[dIdx] = src.data[sIdx];
-        bgData[dIdx + 1] = src.data[sIdx + 1];
-        bgData[dIdx + 2] = src.data[sIdx + 2];
-        bgData[dIdx + 3] = src.data[sIdx + 3];
-    }
+function createMuralCh1P2() {
+    const W = 128, H = 32;
+    const buf = Buffer.alloc(W * H * 4);
+    drawJumpOverMummy(buf, W, H, 6, '4x');
+    drawStrokes(buf, W, H, 42, 18, 4);
+    drawSymbolRelief(buf, W, H, 58, 16, '->');
+    drawPetrifiedMummySection(buf, W, H, 68, 6);
+    drawSymbolRelief(buf, W, H, 92, 16, '->');
+    drawSacredGemSection(buf, W, H, 102, 8);
+    return buf;
 }
-fs.writeFileSync(path.join(assetsDir, 'hieroglyphs_wall_seamless.png'), writePNG(cropW, cropH, bgData));
-console.log(`Generated seamless background wall: ${cropW}x${cropH} at public/assets/hieroglyphs_wall_seamless.png`);
+
+// -------------------------------------------------------------
+// RECÁMARA 2
+// -------------------------------------------------------------
+// Puzle 1: [Cofre N0] -> [Llave] -> [Salto Momia] -> [II] -> [Cofre Radiante]
+function createMuralCh2P1() {
+    const W = 128, H = 32;
+    const buf = Buffer.alloc(W * H * 4);
+    blitWithRelief(buf, W, H, glyphSingleChest, 14, 14, 4, 9);
+    drawSymbolRelief(buf, W, H, 23, 16, '->');
+    blitWithRelief(buf, W, H, glyphAnkh, 12, 18, 30, 7);
+    drawSymbolRelief(buf, W, H, 48, 16, '->');
+    drawJumpOverMummy(buf, W, H, 54, '1x');
+    drawSymbolRelief(buf, W, H, 88, 16, '->');
+    drawStrokes(buf, W, H, 94, 9, 2);
+    drawSymbolRelief(buf, W, H, 106, 16, '->');
+    drawRadiantChest(buf, W, H, 112, 9);
+    return buf;
+}
+
+// Puzle 2: [Salto 2x N1] + [Salto 2x N2] -> [Momia Petrificada] -> [Gema Sagrada]
+function createMuralCh2P2() {
+    const W = 128, H = 32;
+    const buf = Buffer.alloc(W * H * 4);
+    drawJumpOverMummy(buf, W, H, 2, '2x');
+    drawSymbolRelief(buf, W, H, 36, 16, '+');
+    drawJumpOverMummy(buf, W, H, 42, '2x');
+    drawSymbolRelief(buf, W, H, 76, 16, '->');
+    drawPetrifiedMummySection(buf, W, H, 84, 6);
+    drawSymbolRelief(buf, W, H, 104, 16, '->');
+    drawSacredGemSection(buf, W, H, 110, 8);
+    return buf;
+}
+
+// -------------------------------------------------------------
+// RECÁMARA 3
+// -------------------------------------------------------------
+// Puzle 1: [Llave 1.º] -> [Cofre + Cofre] -> [IIII] -> [Cofre Radiante]
+function createMuralCh3P1() {
+    const W = 128, H = 32;
+    const buf = Buffer.alloc(W * H * 4);
+    blitWithRelief(buf, W, H, glyphAnkh, 12, 18, 6, 7);
+    drawText(buf, W, H, 18, 16, '1');
+    drawSymbolRelief(buf, W, H, 28, 16, '->');
+    blitWithRelief(buf, W, H, glyphSingleChest, 14, 14, 34, 9);
+    drawSymbolRelief(buf, W, H, 52, 16, '+');
+    blitWithRelief(buf, W, H, glyphSingleChest, 14, 14, 58, 9);
+    drawSymbolRelief(buf, W, H, 76, 16, '->');
+    drawStrokes(buf, W, H, 84, 9, 4);
+    drawSymbolRelief(buf, W, H, 104, 16, '->');
+    drawRadiantChest(buf, W, H, 112, 9);
+    return buf;
+}
+
+// Puzle 2: [Salto 1x N1] + [Salto 3x N2] -> [Momia Petrificada] -> [Gema Sagrada]
+function createMuralCh3P2() {
+    const W = 128, H = 32;
+    const buf = Buffer.alloc(W * H * 4);
+    drawJumpOverMummy(buf, W, H, 2, '1x');
+    drawSymbolRelief(buf, W, H, 36, 16, '+');
+    drawJumpOverMummy(buf, W, H, 42, '3x');
+    drawSymbolRelief(buf, W, H, 76, 16, '->');
+    drawPetrifiedMummySection(buf, W, H, 84, 6);
+    drawSymbolRelief(buf, W, H, 104, 16, '->');
+    drawSacredGemSection(buf, W, H, 110, 8);
+    return buf;
+}
+
+// -------------------------------------------------------------
+// RECÁMARA 4
+// -------------------------------------------------------------
+// Puzle 1: [2 Cofres + Llave + 2x Salto] -> [I] -> [Cofre Radiante]
+function createMuralCh4P1() {
+    const W = 128, H = 32;
+    const buf = Buffer.alloc(W * H * 4);
+    blitWithRelief(buf, W, H, glyphSingleChest, 14, 14, 4, 9);
+    drawSymbolRelief(buf, W, H, 22, 16, '+');
+    blitWithRelief(buf, W, H, glyphAnkh, 12, 18, 28, 7);
+    drawSymbolRelief(buf, W, H, 44, 16, '+');
+    drawJumpOverMummy(buf, W, H, 49, '2x');
+    drawSymbolRelief(buf, W, H, 84, 16, '->');
+    drawStrokes(buf, W, H, 94, 9, 1);
+    drawSymbolRelief(buf, W, H, 104, 16, '->');
+    drawRadiantChest(buf, W, H, 112, 9);
+    return buf;
+}
+
+// Puzle 2: [Salto 3x N1] + [Salto 1x N2] -> [Momia Petrificada] -> [Gema Sagrada]
+function createMuralCh4P2() {
+    const W = 128, H = 32;
+    const buf = Buffer.alloc(W * H * 4);
+    drawJumpOverMummy(buf, W, H, 2, '3x');
+    drawSymbolRelief(buf, W, H, 36, 16, '+');
+    drawJumpOverMummy(buf, W, H, 42, '1x');
+    drawSymbolRelief(buf, W, H, 76, 16, '->');
+    drawPetrifiedMummySection(buf, W, H, 84, 6);
+    drawSymbolRelief(buf, W, H, 104, 16, '->');
+    drawSacredGemSection(buf, W, H, 110, 8);
+    return buf;
+}
+
+// Generar todos los archivos PNG
+const murals = [
+    { name: 'mural_puzzle_1.png', data: createMuralCh1P1() },
+    { name: 'mural_ch1_p1.png', data: createMuralCh1P1() },
+    { name: 'mural_puzzle_2.png', data: createMuralCh1P2() },
+    { name: 'mural_ch1_p2.png', data: createMuralCh1P2() },
+    { name: 'mural_ch2_p1.png', data: createMuralCh2P1() },
+    { name: 'mural_ch2_p2.png', data: createMuralCh2P2() },
+    { name: 'mural_ch3_p1.png', data: createMuralCh3P1() },
+    { name: 'mural_ch3_p2.png', data: createMuralCh3P2() },
+    { name: 'mural_ch4_p1.png', data: createMuralCh4P1() },
+    { name: 'mural_ch4_p2.png', data: createMuralCh4P2() }
+];
+
+for (const m of murals) {
+    fs.writeFileSync(path.join(assetsDir, m.name), writePNG(128, 32, m.data));
+    console.log(`Generated: public/assets/${m.name}`);
+}
+
+console.log('Successfully generated all diegetic murals for Chambers 1, 2, 3, and 4!');
