@@ -19,7 +19,9 @@ import { Key } from '../entities/Key.ts';
 import { ChamberTreasures } from '../grid/ChamberTreasures.ts';
 import { ChamberMummies } from '../grid/ChamberMummies.ts';
 import { ChamberMovingWalls } from '../grid/ChamberMovingWalls.ts';
+import { ChamberMovingFloors } from '../grid/ChamberMovingFloors.ts';
 import { ChamberKeys } from '../grid/ChamberKeys.ts';
+import { MovingFloorTrap } from '../entities/MovingFloorTrap.ts';
 import type { IChamberPuzzle } from '../puzzles/IChamberPuzzle.ts';
 import { ChamberPuzzleFactory } from '../puzzles/ChamberPuzzleFactory.ts';
 import { PuzzleProgressTracker } from '../puzzles/PuzzleProgressTracker.ts';
@@ -40,6 +42,10 @@ export class GameScene extends Phaser.Scene {
     private movingWallSprites: Phaser.GameObjects.Image[][] = [];
     private triggerSprites: Phaser.GameObjects.Image[] = [];
     private wallTimerTexts: Phaser.GameObjects.Text[] = [];
+
+    // Pisos movedizos / trampas desmoronables de Nivel 1 (a partir de Recámara 5)
+    private movingFloors: MovingFloorTrap[] = [];
+    private movingFloorSprites: Phaser.GameObjects.Image[][] = [];
 
     // Llave ancestral y puerta de salida
     private chamberKey: Key | null = null;
@@ -181,6 +187,10 @@ export class GameScene extends Phaser.Scene {
         // Renderizar activadores y paredes movedizas dinámicas
         this.renderMovingWalls();
 
+        // Cargar pisos movedizos dinámicos de Nivel 1 (a partir de Recámara 5)
+        this.movingFloors = ChamberMovingFloors.createFloorsForChamber(this.initialChamber);
+        this.renderMovingFloors();
+
         // Cargar y renderizar los tesoros de la recámara
         this.treasures = ChamberTreasures.createTreasuresForChamber(this.initialChamber);
         this.renderTreasures();
@@ -286,6 +296,7 @@ export class GameScene extends Phaser.Scene {
         }
 
         if (this.player) {
+            this.updateMovingFloors();
             this.player.updateWithGrid(this.grid);
             this.updateMovingWalls();
             this.checkKeyCollection();
@@ -321,6 +332,35 @@ export class GameScene extends Phaser.Scene {
         // Reintentar con R
         if (this.keyR && Phaser.Input.Keyboard.JustDown(this.keyR)) {
             this.respawnPlayer();
+        }
+    }
+
+    /**
+     * Actualiza la lógica de los pisos movedizos / trampas de Nivel 1 (60 FPS, cero allocations).
+     */
+    private updateMovingFloors(): void {
+        const playerX = this.player ? this.player.x : 0;
+        const playerFeetY = this.player ? this.player.y : 0;
+        const isEliminated = !this.player || this.player.isEliminated;
+
+        for (let i = 0; i < this.movingFloors.length; i++) {
+            const trap = this.movingFloors[i];
+            trap.update(playerX, playerFeetY, isEliminated, this.grid);
+
+            // Sincronizar visibilidad y temblor visual de los sprites de la trampa
+            const sprites = this.movingFloorSprites[i];
+            if (sprites) {
+                const isVisible = !trap.isOpen;
+                const shakeX = trap.shakeOffsetX;
+                for (let sIdx = 0; sIdx < sprites.length; sIdx++) {
+                    const col = trap.minCol + sIdx;
+                    const spr = sprites[sIdx];
+                    spr.setVisible(isVisible);
+                    if (isVisible) {
+                        spr.setPosition(col * GameConstants.TILE_SIZE + shakeX, trap.row * GameConstants.TILE_SIZE);
+                    }
+                }
+            }
         }
     }
 
@@ -538,6 +578,9 @@ export class GameScene extends Phaser.Scene {
         }
         this.renderMovingWalls();
 
+        this.movingFloors = ChamberMovingFloors.createFloorsForChamber(chamberNumber);
+        this.renderMovingFloors();
+
         this.treasures = ChamberTreasures.createTreasuresForChamber(chamberNumber);
         this.renderTreasures();
 
@@ -625,6 +668,21 @@ export class GameScene extends Phaser.Scene {
             if (innerSpr) innerSpr.setTexture('tile_trigger_plate');
         }
 
+        // Restablecer pisos movedizos de Nivel 1
+        for (let i = 0; i < this.movingFloors.length; i++) {
+            const trap = this.movingFloors[i];
+            trap.reset(this.grid);
+
+            const sprites = this.movingFloorSprites[i];
+            if (sprites) {
+                for (let sIdx = 0; sIdx < sprites.length; sIdx++) {
+                    const col = trap.minCol + sIdx;
+                    sprites[sIdx].setVisible(true);
+                    sprites[sIdx].setPosition(col * GameConstants.TILE_SIZE, trap.row * GameConstants.TILE_SIZE);
+                }
+            }
+        }
+
         // Restablecer cofres de la recámara al estado disponible inicial
         for (let i = 0; i < this.treasures.length; i++) {
             this.treasures[i].reset();
@@ -657,6 +715,9 @@ export class GameScene extends Phaser.Scene {
 
         for (let y = 0; y < GameConstants.GRID_ROWS; y++) {
             for (let x = 0; x < GameConstants.GRID_COLUMNS; x++) {
+                if (ChamberMovingFloors.isMovingFloorTile(this.grid.currentChamber, x, y)) {
+                    continue;
+                }
                 const tile = this.grid.getTile(x, y);
                 if (tile === TileType.Empty) continue;
 
@@ -742,6 +803,28 @@ export class GameScene extends Phaser.Scene {
         this.bringUIElementsToTop();
     }
 
+    private renderMovingFloors(): void {
+        for (const spriteGroup of this.movingFloorSprites) {
+            spriteGroup.forEach((s) => s.destroy());
+        }
+        this.movingFloorSprites = [];
+
+        for (const trap of this.movingFloors) {
+            const trapSprites: Phaser.GameObjects.Image[] = [];
+            for (let col = trap.minCol; col <= trap.maxCol; col++) {
+                const spr = this.add.image(
+                    col * GameConstants.TILE_SIZE,
+                    trap.row * GameConstants.TILE_SIZE,
+                    'tile_moving_floor'
+                ).setOrigin(0, 0);
+                trapSprites.push(spr);
+            }
+            this.movingFloorSprites.push(trapSprites);
+        }
+
+        this.bringUIElementsToTop();
+    }
+
     private renderTreasures(): void {
         this.treasureSprites.forEach((sprite) => sprite.destroy());
         this.treasureSprites = [];
@@ -769,6 +852,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     private bringUIElementsToTop(): void {
+        this.movingFloorSprites.forEach((group) => group.forEach((s) => this.children.bringToTop(s)));
         this.triggerSprites.forEach((s) => this.children.bringToTop(s));
         this.treasureSprites.forEach((s) => this.children.bringToTop(s));
         if (this.secretTreasureSprite) this.children.bringToTop(this.secretTreasureSprite);

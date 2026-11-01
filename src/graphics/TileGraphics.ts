@@ -8,6 +8,7 @@ import { GameConstants } from '../core/GameConstants';
 export class TileGraphics {
     public static generateAll(scene: Phaser.Scene): void {
         this.generateWallTexture(scene);
+        this.generateMovingFloorTexture(scene);
         this.generateLadderTexture(scene);
         this.generatePressurePlateTexture(scene);
         this.generateDoorTexture(scene);
@@ -69,6 +70,74 @@ export class TileGraphics {
         g.fillRect(14, 22, 4, 3);
 
         g.generateTexture('tile_wall', size, size);
+        g.destroy();
+    }
+
+    /**
+     * Genera la textura para el piso movedizo inestable de la pirámide (tile_moving_floor).
+     * Mantiene la tonalidad de la arenisca con grietas oscuras y juntas de presión
+     * que indican visualmente una losa desmoronable.
+     */
+    public static generateMovingFloorTexture(scene: Phaser.Scene): void {
+        if (scene.textures.exists('tile_moving_floor')) return;
+
+        const size = GameConstants.TILE_SIZE; // 32
+        const g = scene.make.graphics({ x: 0, y: 0 });
+
+        const mortar = 0x362210;
+        const crackDark = 0x221308;
+        const baseGold = 0xb47e30; // Ligeramente más tostado
+        const highlight = 0xe8b35a;
+        const shade = 0x7c4e16;
+        const accent = 0xf0c068;
+
+        // Fondo base de la losa inestable
+        g.fillStyle(baseGold, 1);
+        g.fillRect(0, 0, size, size);
+
+        // Bisel superior
+        g.fillStyle(highlight, 1);
+        g.fillRect(0, 0, size, 2);
+
+        // Sombras y bordes laterales/inferiores
+        g.fillStyle(mortar, 1);
+        g.fillRect(0, size - 2, size, 2);
+        g.fillRect(0, 0, 2, size);
+        g.fillRect(size - 2, 0, 2, size);
+
+        // Línea divisoria media
+        g.fillStyle(shade, 1);
+        g.fillRect(2, 15, size - 4, 2);
+
+        // Fisuras y grietas profundas (características del piso movedizo desmoronable)
+        g.fillStyle(crackDark, 1);
+        // Grieta 1: Diagonal escalonada superior izquierda
+        g.fillRect(6, 2, 2, 4);
+        g.fillRect(7, 5, 3, 2);
+        g.fillRect(9, 7, 2, 5);
+        g.fillRect(11, 11, 3, 2);
+        g.fillRect(13, 13, 2, 3);
+
+        // Grieta 2: Fisuara transversal inferior derecha
+        g.fillRect(18, 16, 2, 4);
+        g.fillRect(20, 19, 4, 2);
+        g.fillRect(23, 21, 2, 5);
+        g.fillRect(22, 26, 3, 2);
+        g.fillRect(24, 28, 2, 2);
+
+        // Resaltes luminosos al borde de las grietas
+        g.fillStyle(accent, 1);
+        g.fillRect(8, 2, 1, 3);
+        g.fillRect(12, 10, 1, 2);
+        g.fillRect(19, 16, 1, 3);
+        g.fillRect(24, 23, 1, 3);
+
+        // Ranuras de encaje mecánico en los extremos inferiores
+        g.fillStyle(mortar, 1);
+        g.fillRect(4, 28, 4, 2);
+        g.fillRect(size - 8, 28, 4, 2);
+
+        g.generateTexture('tile_moving_floor', size, size);
         g.destroy();
     }
 
