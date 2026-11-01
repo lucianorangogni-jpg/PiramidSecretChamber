@@ -67,11 +67,25 @@ describe('RoomGrid Architecture & Chambers Specs', () => {
             assert.strictEqual(grid.isLadder(10, y), true, `Escalera 2 fila ${y}`);
         }
 
-        // Placa de activación en (8, 13)
-        assert.strictEqual(grid.isPressurePlate(8, 13), true);
+        // No debe haber placa o interruptor sin funcionalidad en Nivel 0 (fila 13)
+        assert.strictEqual(grid.isPressurePlate(8, 13), false);
 
         // Puerta de salida en (18, 4)
         assert.strictEqual(grid.isExitDoor(18, 4), true);
+    });
+
+    it('ninguna recámara (1 a 10) debe tener interruptores o placas sin funcionalidad en la primera plataforma nivel 0', () => {
+        const grid = new RoomGrid();
+        for (let ch = 1; ch <= GameConstants.TOTAL_CHAMBERS; ch++) {
+            grid.loadChamber(ch);
+            for (let x = 0; x < GameConstants.GRID_COLUMNS; x++) {
+                assert.strictEqual(
+                    grid.isPressurePlate(x, 13),
+                    false,
+                    `Recámara ${ch}: no debe haber placa/interruptor en col ${x}, fila 13`
+                );
+            }
+        }
     });
 
     it('debe registrar y calcular las alturas de plataforma', () => {

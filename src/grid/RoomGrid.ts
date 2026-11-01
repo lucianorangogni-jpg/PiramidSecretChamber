@@ -199,9 +199,6 @@ export class RoomGrid {
         // Escalera 2: conecta Nivel 1 con Nivel 2 en columna 10
         for (let y = 5; y <= 9; y++) this.setTile(10, y, TileType.Ladder);
 
-        // Placa de presión en (8, 13)
-        this.setTile(8, 13, TileType.PressurePlate);
-
         // Puerta de salida en (18, 4)
         this.setTile(18, 4, TileType.ExitDoor);
 
@@ -233,9 +230,6 @@ export class RoomGrid {
         // Escalera 2 en col 13 (filas 6 a 10)
         for (let y = 6; y <= 10; y++) this.setTile(13, y, TileType.Ladder);
 
-        // Placa de presión en (8, 13)
-        this.setTile(8, 13, TileType.PressurePlate);
-
         // Puerta de salida en (1, 5)
         this.setTile(1, 5, TileType.ExitDoor);
 
@@ -254,7 +248,7 @@ export class RoomGrid {
         ladder1Col: number,
         ladder2Col: number,
         doorOnRight: boolean,
-        stoneCol: number,
+        _stoneCol: number,
         level1GapColA: number,
         level1GapColB: number
     ): void {
@@ -295,9 +289,6 @@ export class RoomGrid {
             this.setTile(ladder2Col, y, TileType.Ladder);
         }
 
-        // 5. Placa de activación
-        this.setTile(stoneCol, 13, TileType.PressurePlate);
-
         this.roomName = RoomGrid.ChamberNames[chamberNumber - 1];
         this.platforms.push(
             { level: 0, row: GameConstants.GRID_ROWS - 1, minCol: 1, maxCol: GameConstants.GRID_COLUMNS - 2, name: 'Suelo Base Nivel 0' },
@@ -315,7 +306,7 @@ export class RoomGrid {
         ladder2Col: number,
         ladder3Col: number,
         doorOnRight: boolean,
-        stoneCol: number,
+        _stoneCol: number,
         level1GapColA: number,
         extendLevel1And2ToCol18: boolean = false
     ): void {
@@ -353,8 +344,6 @@ export class RoomGrid {
         }
         for (let y = level3Row; y <= level2Row; y++) this.setTile(ladder3Col, y, TileType.Ladder);
 
-        this.setTile(stoneCol, 13, TileType.PressurePlate);
-
         this.roomName = RoomGrid.ChamberNames[chamberNumber - 1];
         this.platforms.push(
             { level: 0, row: GameConstants.GRID_ROWS - 1, minCol: 1, maxCol: GameConstants.GRID_COLUMNS - 2, name: 'Suelo Base Nivel 0' },
@@ -375,7 +364,7 @@ export class RoomGrid {
         ladder3Col: number,
         ladder4Col: number,
         doorOnRight: boolean,
-        stoneCol: number,
+        _stoneCol: number,
         level1GapColA: number
     ): void {
         this.buildPerimeterWalls();
@@ -423,8 +412,6 @@ export class RoomGrid {
 
         for (let y = level3Row; y <= level2Row; y++) this.setTile(ladder3Col, y, TileType.Ladder);
         for (let y = level4Row; y <= level3Row; y++) this.setTile(ladder4Col, y, TileType.Ladder);
-
-        this.setTile(stoneCol, 13, TileType.PressurePlate);
 
         this.roomName = RoomGrid.ChamberNames[chamberNumber - 1];
         this.platforms.push(

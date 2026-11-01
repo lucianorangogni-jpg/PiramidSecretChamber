@@ -10,6 +10,7 @@ import { MummyGraphics } from '../graphics/MummyGraphics.ts';
 import { MovingWallGraphics } from '../graphics/MovingWallGraphics.ts';
 import { KeyGraphics } from '../graphics/KeyGraphics.ts';
 import { HieroglyphGraphics } from '../graphics/HieroglyphGraphics.ts';
+import { HUDGraphics } from '../graphics/HUDGraphics.ts';
 import { Player } from '../entities/Player.ts';
 import { Treasure } from '../entities/Treasure.ts';
 import { Mummy } from '../entities/Mummy.ts';
@@ -66,11 +67,12 @@ export class GameScene extends Phaser.Scene {
     private controlsText!: Phaser.GameObjects.Text;
 
     // Elementos del HUD Derecho (US-007)
-    private hudStatusTitleText!: Phaser.GameObjects.Text;
     private hudScoreText!: Phaser.GameObjects.Text;
     private hudLivesText!: Phaser.GameObjects.Text;
-    private hudKeyText!: Phaser.GameObjects.Text;
     private hudPuzzleText!: Phaser.GameObjects.Text;
+    private hudPlayerLifeIcon!: Phaser.GameObjects.Image;
+    private hudKeyIcon!: Phaser.GameObjects.Image;
+    private hudSarcophagusIcon!: Phaser.GameObjects.Image;
 
     // Teclas
     private numberKeys!: { [key: string]: Phaser.Input.Keyboard.Key };
@@ -119,6 +121,7 @@ export class GameScene extends Phaser.Scene {
         MovingWallGraphics.generateAll(this);
         KeyGraphics.generateAll(this);
         HieroglyphGraphics.generateAll(this);
+        HUDGraphics.generateAll(this);
     }
 
     create(): void {
@@ -150,6 +153,9 @@ export class GameScene extends Phaser.Scene {
         this.hasKey = false;
         this.isChamberCompleted = false;
         this.doorWarningCooldown = 0;
+        if (this.statusText) {
+            this.statusText.setText('');
+        }
         this.chamberKey = ChamberKeys.createKeyForChamber(this.initialChamber);
 
         // Sistema de Puzles Diegéticos (Recámaras 1 a 4)
@@ -192,46 +198,58 @@ export class GameScene extends Phaser.Scene {
         this.chamberTitleText = this.add.text(12, 10, '', {
             fontFamily: 'Courier',
             fontSize: '15px',
-            color: '#f6c672'
+            fontStyle: 'bold',
+            color: '#f8f8fa',
+            stroke: '#1c150b',
+            strokeThickness: 3
         });
 
         this.statusText = this.add.text(12, 30, '', {
             fontFamily: 'Courier',
             fontSize: '13px',
-            color: '#ffd2a5'
+            color: '#f0ede6',
+            stroke: '#1c150b',
+            strokeThickness: 2
         });
 
-        // Panel HUD Derecho (US-007 / US-025: ESTADO / PUNTOS / VIDAS / LLAVE)
-        this.hudStatusTitleText = this.add.text(628, 8, '═ ESTADO ═', {
+        // PUNTOS: situado a continuación del texto de Recámara X (se reposiciona dinámicamente)
+        this.hudScoreText = this.add.text(0, 10, 'PUNTOS: 000000', {
             fontFamily: 'Courier',
-            fontSize: '13px',
+            fontSize: '15px',
             fontStyle: 'bold',
-            color: '#f6c672'
-        }).setOrigin(1, 0);
+            color: '#ffe26a',
+            stroke: '#1c150b',
+            strokeThickness: 3
+        });
 
-        this.hudScoreText = this.add.text(628, 22, 'PUNTOS: 000000', {
+        // Panel HUD Superior Derecho:
+        // 1. Vidas: Icono del personaje (tamaño de corazones) + corazones
+        this.hudLivesText = this.add.text(628, 9, '❤️❤️❤️ (3)', {
             fontFamily: 'Courier',
             fontSize: '12px',
-            color: '#ffe26a'
+            color: '#ffd2a5',
+            stroke: '#1c150b',
+            strokeThickness: 2
         }).setOrigin(1, 0);
 
-        this.hudLivesText = this.add.text(628, 36, 'VIDAS: ❤️❤️❤️ (3)', {
+        this.hudPlayerLifeIcon = this.add.image(530, 16, 'hud_player_life').setOrigin(0.5, 0.5);
+
+        // 2. Sarcófago: Icono del sarcófago + 0/9
+        this.hudPuzzleText = this.add.text(628, 28, '🔒 0/9', {
             fontFamily: 'Courier',
             fontSize: '12px',
-            color: '#ffd2a5'
+            fontStyle: 'bold',
+            color: '#71d4ff',
+            stroke: '#1c150b',
+            strokeThickness: 2
         }).setOrigin(1, 0);
 
-        this.hudKeyText = this.add.text(628, 50, 'LLAVE: 🔒 NO', {
-            fontFamily: 'Courier',
-            fontSize: '12px',
-            color: '#ff9d5c'
-        }).setOrigin(1, 0);
+        this.hudSarcophagusIcon = this.add.image(568, 35, 'hud_sarcophagus_icon').setOrigin(0.5, 0.5);
 
-        this.hudPuzzleText = this.add.text(628, 64, 'SARCOFAGO: 🔒 0/9', {
-            fontFamily: 'Courier',
-            fontSize: '12px',
-            color: '#71d4ff'
-        }).setOrigin(1, 0);
+        // 3. Llave: Icono de llave grisada hasta recogerla
+        this.hudKeyIcon = this.add.image(544, 35, 'hud_key_icon').setOrigin(0.5, 0.5);
+        this.hudKeyIcon.setTint(0x555555);
+        this.hudKeyIcon.setAlpha(0.35);
 
         this.controlsText = this.add.text(12, 460, '[←][→]/Joystick: Mover | [↑][↓]: Escaleras | [Espacio/Botón]: Salto | [ESC/M]: Menú | [R]: Reintentar', {
             fontFamily: 'Courier',
@@ -488,6 +506,9 @@ export class GameScene extends Phaser.Scene {
         this.hasKey = false;
         this.isChamberCompleted = false;
         this.doorWarningCooldown = 0;
+        if (this.statusText) {
+            this.statusText.setText('');
+        }
         this.chamberKey = ChamberKeys.createKeyForChamber(chamberNumber);
 
         // Sistema de Puzles Diegéticos
@@ -551,6 +572,9 @@ export class GameScene extends Phaser.Scene {
         this.hasKey = false;
         this.isChamberCompleted = false;
         this.doorWarningCooldown = 0;
+        if (this.statusText) {
+            this.statusText.setText('');
+        }
         if (this.chamberKey) {
             this.chamberKey.reset();
         }
@@ -756,11 +780,12 @@ export class GameScene extends Phaser.Scene {
         this.mummySprites.forEach((s) => this.children.bringToTop(s));
         if (this.player) this.children.bringToTop(this.player);
         if (this.chamberTitleText) this.children.bringToTop(this.chamberTitleText);
-        if (this.statusText) this.children.bringToTop(this.statusText);
-        if (this.hudStatusTitleText) this.children.bringToTop(this.hudStatusTitleText);
         if (this.hudScoreText) this.children.bringToTop(this.hudScoreText);
+        if (this.statusText) this.children.bringToTop(this.statusText);
+        if (this.hudPlayerLifeIcon) this.children.bringToTop(this.hudPlayerLifeIcon);
         if (this.hudLivesText) this.children.bringToTop(this.hudLivesText);
-        if (this.hudKeyText) this.children.bringToTop(this.hudKeyText);
+        if (this.hudKeyIcon) this.children.bringToTop(this.hudKeyIcon);
+        if (this.hudSarcophagusIcon) this.children.bringToTop(this.hudSarcophagusIcon);
         if (this.hudPuzzleText) this.children.bringToTop(this.hudPuzzleText);
         if (this.controlsText) this.children.bringToTop(this.controlsText);
     }
@@ -943,42 +968,41 @@ export class GameScene extends Phaser.Scene {
         if (!this.chamberTitleText || !this.statusText || !this.player) return;
 
         this.chamberTitleText.setText(
-            `🏛️ RETRO PIRÁMIDE: ${this.grid.roomName} [Nivel ${this.grid.pyramidLevel}/4]`
+            `${this.grid.roomName} [Nivel ${this.grid.pyramidLevel}/4]`
         );
 
-        let statusMsg: string;
         if (this.player.isEliminated) {
-            statusMsg = this.player.currentLives <= 0
+            const statusMsg = this.player.currentLives <= 0
                 ? '¡GAME OVER! Presiona [ESC/M] para volver al Menú'
                 : '¡ELIMINADO! Presiona [R] para reintentar';
-        } else {
-            statusMsg = `Estado: ${this.player.currentState}`;
+            this.statusText.setText(statusMsg);
+        } else if (
+            this.statusText.text.startsWith('Estado:') ||
+            this.statusText.text.includes('ELIMINADO') ||
+            this.statusText.text.includes('GAME OVER')
+        ) {
+            this.statusText.setText('');
         }
 
-        this.statusText.setText(statusMsg);
-
-        // Actualizar HUD superior derecho (US-007 / US-025)
+        // PUNTOS: a continuación del texto de Recámara
         if (this.hudScoreText) {
             const formattedScore = String(this.currentScore).padStart(6, '0');
             this.hudScoreText.setText(`PUNTOS: ${formattedScore}`);
+            this.hudScoreText.setPosition(
+                this.chamberTitleText.x + this.chamberTitleText.width + 16,
+                10
+            );
         }
 
         if (this.hudLivesText) {
             const livesCount = Math.max(0, this.player.currentLives);
             const livesIcons = '❤️'.repeat(livesCount);
-            this.hudLivesText.setText(`VIDAS: ${livesIcons} (${livesCount})`);
-        }
-
-        if (this.hudKeyText) {
-            if (this.hasKey) {
-                this.hudKeyText.setText('LLAVE: 🔑 SÍ');
-                this.hudKeyText.setColor('#ffe26a');
-            } else if (ChamberKeys.isKeyRequired(this.grid.currentChamber)) {
-                this.hudKeyText.setText('LLAVE: 🔒 NO');
-                this.hudKeyText.setColor('#ff9d5c');
-            } else {
-                this.hudKeyText.setText('LLAVE: ──');
-                this.hudKeyText.setColor('#8a6b47');
+            this.hudLivesText.setText(`${livesIcons} (${livesCount})`);
+            if (this.hudPlayerLifeIcon) {
+                this.hudPlayerLifeIcon.setPosition(
+                    628 - this.hudLivesText.width - 12,
+                    16
+                );
             }
         }
 
@@ -986,11 +1010,31 @@ export class GameScene extends Phaser.Scene {
             const tracker = PuzzleProgressTracker.getInstance();
             const count = tracker.completedChambersCount;
             if (tracker.isChamber10Unlocked) {
-                this.hudPuzzleText.setText('SARCOFAGO: 🔓 LISTO');
+                this.hudPuzzleText.setText('🔓 LISTO');
                 this.hudPuzzleText.setColor('#ffe26a');
             } else {
-                this.hudPuzzleText.setText(`SARCOFAGO: 🔒 ${count}/9`);
+                this.hudPuzzleText.setText(`🔒 ${count}/9`);
                 this.hudPuzzleText.setColor('#71d4ff');
+            }
+            if (this.hudSarcophagusIcon) {
+                this.hudSarcophagusIcon.setPosition(
+                    628 - this.hudPuzzleText.width - 12,
+                    35
+                );
+            }
+        }
+
+        if (this.hudKeyIcon && this.hudSarcophagusIcon) {
+            this.hudKeyIcon.setPosition(
+                this.hudSarcophagusIcon.x - 22,
+                35
+            );
+            if (this.hasKey) {
+                this.hudKeyIcon.clearTint();
+                this.hudKeyIcon.setAlpha(1.0);
+            } else {
+                this.hudKeyIcon.setTint(0x555555);
+                this.hudKeyIcon.setAlpha(0.35);
             }
         }
     }
