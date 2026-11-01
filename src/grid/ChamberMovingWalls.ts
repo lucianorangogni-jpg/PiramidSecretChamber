@@ -204,7 +204,7 @@ export class ChamberMovingWalls {
                 {
                     gridX: 15,
                     gridY: 7,
-                    topGridY: 6,
+                    topGridY: 4,
                     outerTrigger: { gridX: 13, gridY: 7 },
                     innerTrigger: { gridX: 16, gridY: 7 },
                     associatedTreasureId: 'ch9_t2'

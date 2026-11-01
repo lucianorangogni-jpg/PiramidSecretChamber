@@ -15,6 +15,16 @@ export class HieroglyphGraphics {
         this.generateMuralCh3P2(scene);
         this.generateMuralCh4P1(scene);
         this.generateMuralCh4P2(scene);
+        this.generateMuralCh5P1(scene);
+        this.generateMuralCh5P2(scene);
+        this.generateMuralCh6P1(scene);
+        this.generateMuralCh6P2(scene);
+        this.generateMuralCh7P1(scene);
+        this.generateMuralCh7P2(scene);
+        this.generateMuralCh8P1(scene);
+        this.generateMuralCh8P2(scene);
+        this.generateMuralCh9P1(scene);
+        this.generateMuralCh9P2(scene);
         this.generateSacredGemTexture(scene);
         this.generatePetrifiedMummyTexture(scene);
     }
@@ -535,6 +545,566 @@ export class HieroglyphGraphics {
         g.fillTriangle(109, 17, 123, 17, 116, 26);
 
         g.generateTexture('mural_ch4_p2', width, height);
+        g.destroy();
+    }
+
+    /**
+     * Recámara 5 - Puzle 1: [Cofre] + [Cofre] + [Llave] -> [III] -> [Cofre Radiante]
+     */
+    public static generateMuralCh5P1(scene: Phaser.Scene): void {
+        if (scene.textures.exists('mural_ch5_p1')) return;
+
+        const width = 128;
+        const height = 32;
+        const g = scene.make.graphics({ x: 0, y: 0 });
+
+        const glyphBase = 0xb88846;
+        const glyphHighlight = 0xe0b268;
+        const goldRadiance = 0xffdf6d;
+
+        // Cofre 1
+        g.fillStyle(glyphBase, 1); g.fillRect(4, 9, 14, 14);
+        // +
+        g.fillStyle(glyphHighlight, 1); g.fillRect(22, 13, 2, 6); g.fillRect(20, 15, 6, 2);
+        // Cofre 2
+        g.fillStyle(glyphBase, 1); g.fillRect(28, 9, 14, 14);
+        // +
+        g.fillStyle(glyphHighlight, 1); g.fillRect(46, 13, 2, 6); g.fillRect(44, 15, 6, 2);
+        // Llave Ankh
+        g.fillStyle(goldRadiance, 1);
+        g.strokeCircle(58, 11, 4);
+        g.fillRect(57, 14, 2, 9);
+        g.fillRect(54, 16, 8, 2);
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(70, 16, 5, 2); g.fillRect(73, 14, 2, 5);
+        // III
+        g.fillStyle(goldRadiance, 1);
+        g.fillRect(80, 10, 2, 13);
+        g.fillRect(84, 10, 2, 13);
+        g.fillRect(88, 10, 2, 13);
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(100, 16, 5, 2); g.fillRect(103, 14, 2, 5);
+        // Cofre Radiante
+        g.fillStyle(goldRadiance, 1); g.fillRect(110, 9, 14, 14);
+        g.fillStyle(0xffffff, 1); g.fillRect(115, 5, 2, 2);
+
+        g.generateTexture('mural_ch5_p1', width, height);
+        g.destroy();
+    }
+
+    /**
+     * Recámara 5 - Puzle 2: [Salto 2x N0] + [Salto 2x N2] -> [Momia Petrificada] -> [Gema Sagrada]
+     */
+    public static generateMuralCh5P2(scene: Phaser.Scene): void {
+        if (scene.textures.exists('mural_ch5_p2')) return;
+
+        const width = 128;
+        const height = 32;
+        const g = scene.make.graphics({ x: 0, y: 0 });
+
+        const glyphBase = 0xb88846;
+        const glyphHighlight = 0xe0b268;
+        const goldRadiance = 0xffdf6d;
+        const gemRadiance = 0x48e4ff;
+
+        // Salto 2x
+        g.fillStyle(glyphBase, 0.8); g.fillRect(12, 15, 8, 10);
+        g.lineStyle(1.5, goldRadiance, 1);
+        g.beginPath();
+        g.moveTo(2, 26);
+        for (let x = 3; x <= 24; x++) {
+            const t = (x - 2) / 22;
+            g.lineTo(x, Math.round(26 - 18 * 4 * t * (1 - t)));
+        }
+        g.strokePath();
+        g.fillStyle(goldRadiance, 1); g.fillRect(18, 3, 5, 2); // 2
+
+        // +
+        g.fillStyle(glyphHighlight, 1); g.fillRect(36, 12, 2, 8); g.fillRect(33, 15, 8, 2);
+
+        // Salto 2x
+        g.fillStyle(glyphBase, 0.8); g.fillRect(52, 15, 8, 10);
+        g.lineStyle(1.5, goldRadiance, 1);
+        g.beginPath();
+        g.moveTo(42, 26);
+        for (let x = 43; x <= 64; x++) {
+            const t = (x - 42) / 22;
+            g.lineTo(x, Math.round(26 - 18 * 4 * t * (1 - t)));
+        }
+        g.strokePath();
+        g.fillStyle(goldRadiance, 1); g.fillRect(58, 3, 5, 2); // 2
+
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(76, 16, 5, 2); g.fillRect(79, 14, 2, 5);
+
+        // Estatua petrificada
+        g.fillStyle(goldRadiance, 1); g.fillRect(86, 10, 8, 15);
+
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(104, 16, 5, 2); g.fillRect(107, 14, 2, 5);
+
+        // Gema
+        g.fillStyle(gemRadiance, 1);
+        g.fillTriangle(117, 8, 110, 17, 124, 17);
+        g.fillTriangle(110, 17, 124, 17, 117, 26);
+
+        g.generateTexture('mural_ch5_p2', width, height);
+        g.destroy();
+    }
+
+    /**
+     * Recámara 6 - Puzle 1: [Cofre N2 (2)] -> [Cofre N0] + [Llave] -> [II] -> [Cofre Radiante]
+     */
+    public static generateMuralCh6P1(scene: Phaser.Scene): void {
+        if (scene.textures.exists('mural_ch6_p1')) return;
+
+        const width = 128;
+        const height = 32;
+        const g = scene.make.graphics({ x: 0, y: 0 });
+
+        const glyphBase = 0xb88846;
+        const glyphHighlight = 0xe0b268;
+        const goldRadiance = 0xffdf6d;
+
+        // Cofre N2 (2)
+        g.fillStyle(glyphBase, 1); g.fillRect(4, 9, 14, 14);
+        g.fillStyle(goldRadiance, 1); g.fillRect(16, 16, 4, 2); // 2
+
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(26, 16, 5, 2); g.fillRect(29, 14, 2, 5);
+
+        // Cofre N0
+        g.fillStyle(glyphBase, 1); g.fillRect(34, 9, 14, 14);
+
+        // +
+        g.fillStyle(glyphHighlight, 1); g.fillRect(52, 13, 2, 6); g.fillRect(50, 15, 6, 2);
+
+        // Llave Ankh
+        g.fillStyle(goldRadiance, 1);
+        g.strokeCircle(64, 11, 4);
+        g.fillRect(63, 14, 2, 9);
+        g.fillRect(60, 16, 8, 2);
+
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(76, 16, 5, 2); g.fillRect(79, 14, 2, 5);
+
+        // II
+        g.fillStyle(goldRadiance, 1);
+        g.fillRect(88, 10, 2, 13);
+        g.fillRect(92, 10, 2, 13);
+
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(102, 16, 5, 2); g.fillRect(105, 14, 2, 5);
+
+        // Cofre Radiante
+        g.fillStyle(goldRadiance, 1); g.fillRect(110, 9, 14, 14);
+        g.fillStyle(0xffffff, 1); g.fillRect(115, 5, 2, 2);
+
+        g.generateTexture('mural_ch6_p1', width, height);
+        g.destroy();
+    }
+
+    /**
+     * Recámara 6 - Puzle 2: [Salto 4x N1] -> [Momia Petrificada] -> [Gema Sagrada]
+     */
+    public static generateMuralCh6P2(scene: Phaser.Scene): void {
+        if (scene.textures.exists('mural_ch6_p2')) return;
+
+        const width = 128;
+        const height = 32;
+        const g = scene.make.graphics({ x: 0, y: 0 });
+
+        const glyphBase = 0xb88846;
+        const glyphHighlight = 0xe0b268;
+        const goldRadiance = 0xffdf6d;
+        const gemRadiance = 0x48e4ff;
+
+        // Salto 4x
+        g.fillStyle(glyphBase, 0.8); g.fillRect(18, 15, 8, 10);
+        g.lineStyle(1.5, goldRadiance, 1);
+        g.beginPath();
+        g.moveTo(6, 26);
+        for (let x = 7; x <= 36; x++) {
+            const t = (x - 6) / 30;
+            g.lineTo(x, Math.round(26 - 18 * 4 * t * (1 - t)));
+        }
+        g.strokePath();
+
+        // 4 marcas
+        g.fillStyle(goldRadiance, 1);
+        g.fillRect(42, 14, 2, 8);
+        g.fillRect(45, 14, 2, 8);
+        g.fillRect(48, 14, 2, 8);
+        g.fillRect(51, 14, 2, 8);
+
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(58, 16, 5, 2); g.fillRect(61, 14, 2, 5);
+
+        // Estatua petrificada
+        g.fillStyle(goldRadiance, 1); g.fillRect(72, 10, 8, 15);
+
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(92, 16, 5, 2); g.fillRect(95, 14, 2, 5);
+
+        // Gema
+        g.fillStyle(gemRadiance, 1);
+        g.fillTriangle(114, 8, 107, 17, 121, 17);
+        g.fillTriangle(107, 17, 121, 17, 114, 26);
+
+        g.generateTexture('mural_ch6_p2', width, height);
+        g.destroy();
+    }
+
+    /**
+     * Recámara 7 - Puzle 1: [Llave] + [Salto 1x N1] + [Salto 1x N2] -> [Cofre Radiante]
+     */
+    public static generateMuralCh7P1(scene: Phaser.Scene): void {
+        if (scene.textures.exists('mural_ch7_p1')) return;
+
+        const width = 128;
+        const height = 32;
+        const g = scene.make.graphics({ x: 0, y: 0 });
+
+        const glyphBase = 0xb88846;
+        const glyphHighlight = 0xe0b268;
+        const goldRadiance = 0xffdf6d;
+
+        // Llave Ankh
+        g.fillStyle(goldRadiance, 1);
+        g.strokeCircle(10, 11, 4);
+        g.fillRect(9, 14, 2, 9);
+        g.fillRect(6, 16, 8, 2);
+
+        // +
+        g.fillStyle(glyphHighlight, 1); g.fillRect(20, 13, 2, 6); g.fillRect(18, 15, 6, 2);
+
+        // Salto 1x
+        g.fillStyle(glyphBase, 0.8); g.fillRect(34, 15, 8, 10);
+        g.lineStyle(1.5, goldRadiance, 1);
+        g.beginPath();
+        g.moveTo(25, 26);
+        for (let x = 26; x <= 48; x++) {
+            const t = (x - 25) / 23;
+            g.lineTo(x, Math.round(26 - 18 * 4 * t * (1 - t)));
+        }
+        g.strokePath();
+
+        // +
+        g.fillStyle(glyphHighlight, 1); g.fillRect(59, 13, 2, 6); g.fillRect(57, 15, 6, 2);
+
+        // Salto 1x
+        g.fillStyle(glyphBase, 0.8); g.fillRect(73, 15, 8, 10);
+        g.lineStyle(1.5, goldRadiance, 1);
+        g.beginPath();
+        g.moveTo(64, 26);
+        for (let x = 65; x <= 87; x++) {
+            const t = (x - 64) / 23;
+            g.lineTo(x, Math.round(26 - 18 * 4 * t * (1 - t)));
+        }
+        g.strokePath();
+
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(98, 16, 5, 2); g.fillRect(101, 14, 2, 5);
+
+        // Cofre Radiante
+        g.fillStyle(goldRadiance, 1); g.fillRect(110, 9, 14, 14);
+        g.fillStyle(0xffffff, 1); g.fillRect(115, 5, 2, 2);
+
+        g.generateTexture('mural_ch7_p1', width, height);
+        g.destroy();
+    }
+
+    /**
+     * Recámara 7 - Puzle 2: [Salto 2x N1] + [Salto 3x N2] -> [Momia Petrificada] -> [Gema Sagrada]
+     */
+    public static generateMuralCh7P2(scene: Phaser.Scene): void {
+        if (scene.textures.exists('mural_ch7_p2')) return;
+
+        const width = 128;
+        const height = 32;
+        const g = scene.make.graphics({ x: 0, y: 0 });
+
+        const glyphBase = 0xb88846;
+        const glyphHighlight = 0xe0b268;
+        const goldRadiance = 0xffdf6d;
+        const gemRadiance = 0x48e4ff;
+
+        // Salto 2x
+        g.fillStyle(glyphBase, 0.8); g.fillRect(12, 15, 8, 10);
+        g.lineStyle(1.5, goldRadiance, 1);
+        g.beginPath();
+        g.moveTo(2, 26);
+        for (let x = 3; x <= 24; x++) {
+            const t = (x - 2) / 22;
+            g.lineTo(x, Math.round(26 - 18 * 4 * t * (1 - t)));
+        }
+        g.strokePath();
+        g.fillStyle(goldRadiance, 1); g.fillRect(18, 3, 5, 2); // 2
+
+        // +
+        g.fillStyle(glyphHighlight, 1); g.fillRect(36, 12, 2, 8); g.fillRect(33, 15, 8, 2);
+
+        // Salto 3x
+        g.fillStyle(glyphBase, 0.8); g.fillRect(52, 15, 8, 10);
+        g.lineStyle(1.5, goldRadiance, 1);
+        g.beginPath();
+        g.moveTo(42, 26);
+        for (let x = 43; x <= 64; x++) {
+            const t = (x - 42) / 22;
+            g.lineTo(x, Math.round(26 - 18 * 4 * t * (1 - t)));
+        }
+        g.strokePath();
+        g.fillStyle(goldRadiance, 1); g.fillRect(58, 3, 5, 2); // 3
+
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(76, 16, 5, 2); g.fillRect(79, 14, 2, 5);
+
+        // Estatua petrificada
+        g.fillStyle(goldRadiance, 1); g.fillRect(86, 10, 8, 15);
+
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(104, 16, 5, 2); g.fillRect(107, 14, 2, 5);
+
+        // Gema
+        g.fillStyle(gemRadiance, 1);
+        g.fillTriangle(117, 8, 110, 17, 124, 17);
+        g.fillTriangle(110, 17, 124, 17, 117, 26);
+
+        g.generateTexture('mural_ch7_p2', width, height);
+        g.destroy();
+    }
+
+    /**
+     * Recámara 8 - Puzle 1: [Cofre] + [Llave] + [Salto 1x N3] -> [I] -> [Cofre Radiante]
+     */
+    public static generateMuralCh8P1(scene: Phaser.Scene): void {
+        if (scene.textures.exists('mural_ch8_p1')) return;
+
+        const width = 128;
+        const height = 32;
+        const g = scene.make.graphics({ x: 0, y: 0 });
+
+        const glyphBase = 0xb88846;
+        const glyphHighlight = 0xe0b268;
+        const goldRadiance = 0xffdf6d;
+
+        // Cofre
+        g.fillStyle(glyphBase, 1); g.fillRect(4, 9, 14, 14);
+
+        // +
+        g.fillStyle(glyphHighlight, 1); g.fillRect(22, 13, 2, 6); g.fillRect(20, 15, 6, 2);
+
+        // Llave Ankh
+        g.fillStyle(goldRadiance, 1);
+        g.strokeCircle(34, 11, 4);
+        g.fillRect(33, 14, 2, 9);
+        g.fillRect(30, 16, 8, 2);
+
+        // +
+        g.fillStyle(glyphHighlight, 1); g.fillRect(44, 13, 2, 6); g.fillRect(42, 15, 6, 2);
+
+        // Salto 1x N3
+        g.fillStyle(glyphBase, 0.8); g.fillRect(58, 15, 8, 10);
+        g.lineStyle(1.5, goldRadiance, 1);
+        g.beginPath();
+        g.moveTo(49, 26);
+        for (let x = 50; x <= 72; x++) {
+            const t = (x - 49) / 23;
+            g.lineTo(x, Math.round(26 - 18 * 4 * t * (1 - t)));
+        }
+        g.strokePath();
+
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(84, 16, 5, 2); g.fillRect(87, 14, 2, 5);
+
+        // I
+        g.fillStyle(goldRadiance, 1); g.fillRect(94, 10, 3, 13);
+
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(104, 16, 5, 2); g.fillRect(107, 14, 2, 5);
+
+        // Cofre Radiante
+        g.fillStyle(goldRadiance, 1); g.fillRect(112, 9, 14, 14);
+        g.fillStyle(0xffffff, 1); g.fillRect(116, 5, 2, 2);
+
+        g.generateTexture('mural_ch8_p1', width, height);
+        g.destroy();
+    }
+
+    /**
+     * Recámara 8 - Puzle 2: [Salto 1x N1] + [Salto 2x N2] + [Salto 1x N3] -> [Gema Sagrada]
+     */
+    public static generateMuralCh8P2(scene: Phaser.Scene): void {
+        if (scene.textures.exists('mural_ch8_p2')) return;
+
+        const width = 128;
+        const height = 32;
+        const g = scene.make.graphics({ x: 0, y: 0 });
+
+        const glyphBase = 0xb88846;
+        const glyphHighlight = 0xe0b268;
+        const goldRadiance = 0xffdf6d;
+        const gemRadiance = 0x48e4ff;
+
+        // Salto 2x (N2)
+        g.fillStyle(glyphBase, 0.8); g.fillRect(10, 15, 7, 10);
+        g.lineStyle(1.5, goldRadiance, 1);
+        g.beginPath();
+        g.moveTo(2, 26);
+        for (let x = 3; x <= 22; x++) {
+            const t = (x - 2) / 20;
+            g.lineTo(x, Math.round(26 - 18 * 4 * t * (1 - t)));
+        }
+        g.strokePath();
+
+        // +
+        g.fillStyle(glyphHighlight, 1); g.fillRect(36, 13, 2, 6); g.fillRect(34, 15, 6, 2);
+
+        // Salto 2x (N3)
+        g.fillStyle(glyphBase, 0.8); g.fillRect(50, 15, 7, 10);
+        g.lineStyle(1.5, goldRadiance, 1);
+        g.beginPath();
+        g.moveTo(42, 26);
+        for (let x = 43; x <= 62; x++) {
+            const t = (x - 42) / 20;
+            g.lineTo(x, Math.round(26 - 18 * 4 * t * (1 - t)));
+        }
+        g.strokePath();
+
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(74, 16, 5, 2); g.fillRect(77, 14, 2, 5);
+
+        // Momia petrificada
+        g.fillStyle(goldRadiance, 0.9);
+        g.fillRect(86, 10, 8, 14);
+
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(100, 16, 5, 2); g.fillRect(103, 14, 2, 5);
+
+        // Gema
+        g.fillStyle(gemRadiance, 1);
+        g.fillTriangle(116, 8, 109, 17, 123, 17);
+        g.fillTriangle(109, 17, 123, 17, 116, 26);
+
+        g.generateTexture('mural_ch8_p2', width, height);
+        g.destroy();
+    }
+
+    /**
+     * Recámara 9 - Puzle 1: [Llave (1)] -> [Cofre] + [Salto 3x] -> [III] -> [Cofre Radiante]
+     */
+    public static generateMuralCh9P1(scene: Phaser.Scene): void {
+        if (scene.textures.exists('mural_ch9_p1')) return;
+
+        const width = 128;
+        const height = 32;
+        const g = scene.make.graphics({ x: 0, y: 0 });
+
+        const glyphBase = 0xb88846;
+        const glyphHighlight = 0xe0b268;
+        const goldRadiance = 0xffdf6d;
+
+        // Llave 1
+        g.fillStyle(goldRadiance, 1);
+        g.strokeCircle(10, 11, 4);
+        g.fillRect(9, 14, 2, 9);
+        g.fillRect(6, 16, 8, 2);
+        g.fillRect(16, 16, 2, 5); // 1
+
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(24, 16, 5, 2); g.fillRect(27, 14, 2, 5);
+
+        // Cofre
+        g.fillStyle(glyphBase, 1); g.fillRect(30, 9, 14, 14);
+
+        // +
+        g.fillStyle(glyphHighlight, 1); g.fillRect(48, 13, 2, 6); g.fillRect(46, 15, 6, 2);
+
+        // Salto 3x
+        g.fillStyle(glyphBase, 0.8); g.fillRect(62, 15, 8, 10);
+        g.lineStyle(1.5, goldRadiance, 1);
+        g.beginPath();
+        g.moveTo(53, 26);
+        for (let x = 54; x <= 76; x++) {
+            const t = (x - 53) / 23;
+            g.lineTo(x, Math.round(26 - 18 * 4 * t * (1 - t)));
+        }
+        g.strokePath();
+
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(88, 16, 5, 2); g.fillRect(91, 14, 2, 5);
+
+        // III
+        g.fillStyle(goldRadiance, 1);
+        g.fillRect(98, 10, 2, 13);
+        g.fillRect(102, 10, 2, 13);
+        g.fillRect(106, 10, 2, 13);
+
+        // Cofre Radiante
+        g.fillStyle(goldRadiance, 1); g.fillRect(112, 9, 14, 14);
+        g.fillStyle(0xffffff, 1); g.fillRect(116, 5, 2, 2);
+
+        g.generateTexture('mural_ch9_p1', width, height);
+        g.destroy();
+    }
+
+    /**
+     * Recámara 9 - Puzle 2: [Salto 2x N2] + [Salto 2x N3] -> [Momia Petrificada] -> [Gema Sagrada]
+     */
+    public static generateMuralCh9P2(scene: Phaser.Scene): void {
+        if (scene.textures.exists('mural_ch9_p2')) return;
+
+        const width = 128;
+        const height = 32;
+        const g = scene.make.graphics({ x: 0, y: 0 });
+
+        const glyphBase = 0xb88846;
+        const glyphHighlight = 0xe0b268;
+        const goldRadiance = 0xffdf6d;
+        const gemRadiance = 0x48e4ff;
+
+        // Salto 2x
+        g.fillStyle(glyphBase, 0.8); g.fillRect(12, 15, 8, 10);
+        g.lineStyle(1.5, goldRadiance, 1);
+        g.beginPath();
+        g.moveTo(2, 26);
+        for (let x = 3; x <= 24; x++) {
+            const t = (x - 2) / 22;
+            g.lineTo(x, Math.round(26 - 18 * 4 * t * (1 - t)));
+        }
+        g.strokePath();
+        g.fillStyle(goldRadiance, 1); g.fillRect(18, 3, 5, 2); // 2
+
+        // +
+        g.fillStyle(glyphHighlight, 1); g.fillRect(36, 12, 2, 8); g.fillRect(33, 15, 8, 2);
+
+        // Salto 2x
+        g.fillStyle(glyphBase, 0.8); g.fillRect(52, 15, 8, 10);
+        g.lineStyle(1.5, goldRadiance, 1);
+        g.beginPath();
+        g.moveTo(42, 26);
+        for (let x = 43; x <= 64; x++) {
+            const t = (x - 42) / 22;
+            g.lineTo(x, Math.round(26 - 18 * 4 * t * (1 - t)));
+        }
+        g.strokePath();
+        g.fillStyle(goldRadiance, 1); g.fillRect(58, 3, 5, 2); // 2
+
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(76, 16, 5, 2); g.fillRect(79, 14, 2, 5);
+
+        // Estatua petrificada
+        g.fillStyle(goldRadiance, 1); g.fillRect(86, 10, 8, 15);
+
+        // ->
+        g.fillStyle(glyphHighlight, 1); g.fillRect(104, 16, 5, 2); g.fillRect(107, 14, 2, 5);
+
+        // Gema
+        g.fillStyle(gemRadiance, 1);
+        g.fillTriangle(117, 8, 110, 17, 124, 17);
+        g.fillTriangle(110, 17, 124, 17, 117, 26);
+
+        g.generateTexture('mural_ch9_p2', width, height);
         g.destroy();
     }
 

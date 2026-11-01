@@ -67,7 +67,7 @@ describe('Chamber 2 Puzzles Mechanics & State Machine Specs', () => {
             assert.strictEqual(puzzle.puzzle1Stage, 2);
 
             // Momia en Nivel 1 (y = 320, x = 200)
-            const mummyN1 = new Mummy(200, 320, 80, 368, Direction.Left, 1.0);
+            const mummyN1 = new Mummy(200, 320, 80, 368, Direction.Left);
             const mummies = [mummyN1];
 
             puzzle.consumePendingNotifications();
@@ -88,7 +88,7 @@ describe('Chamber 2 Puzzles Mechanics & State Machine Specs', () => {
             puzzle.notifyTreasureCollected('ch2_t1');
             puzzle.notifyKeyCollected();
 
-            const mummyN1 = new Mummy(200, 320, 80, 368, Direction.Left, 1.0);
+            const mummyN1 = new Mummy(200, 320, 80, 368, Direction.Left);
             puzzle.update(200, 320 - 16, true, [mummyN1]);
             assert.strictEqual(puzzle.puzzle1Stage, 3);
 
@@ -118,8 +118,8 @@ describe('Chamber 2 Puzzles Mechanics & State Machine Specs', () => {
         it('debe registrar 2 saltos en Nivel 1 y 2 saltos en Nivel 2 para petrificar y revelar la gema', () => {
             const puzzle = new Chamber2Puzzle();
 
-            const mummyN1 = new Mummy(200, 320, 80, 368, Direction.Left, 1.0); // Nivel 1
-            const mummyN2 = new Mummy(300, 192, 144, 400, Direction.Right, 1.0); // Nivel 2
+            const mummyN1 = new Mummy(200, 320, 80, 368, Direction.Left); // Nivel 1
+            const mummyN2 = new Mummy(300, 192, 144, 400, Direction.Right); // Nivel 2
             const mummies = [mummyN1, mummyN2];
 
             // Salto 1 en Nivel 1
@@ -158,8 +158,8 @@ describe('Chamber 2 Puzzles Mechanics & State Machine Specs', () => {
 
         it('la petrificación debe expirar tras 300 frames y reactivar a las momias', () => {
             const puzzle = new Chamber2Puzzle();
-            const mummyN1 = new Mummy(200, 320, 80, 368, Direction.Left, 1.0);
-            const mummyN2 = new Mummy(300, 192, 144, 400, Direction.Right, 1.0);
+            const mummyN1 = new Mummy(200, 320, 80, 368, Direction.Left);
+            const mummyN2 = new Mummy(300, 192, 144, 400, Direction.Right);
             const mummies = [mummyN1, mummyN2];
 
             // Cumplir saltos

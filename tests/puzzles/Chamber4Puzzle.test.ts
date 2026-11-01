@@ -32,7 +32,7 @@ describe('Chamber 4 Puzzles Mechanics & State Machine Specs', () => {
             assert.strictEqual(puzzle.doorCycleCount, 0);
 
             // 1 solo salto sobre momia
-            const mummy = new Mummy(240, 320, 80, 336, Direction.Left, 1.0);
+            const mummy = new Mummy(240, 320, 80, 336, Direction.Left);
             puzzle.update(240, 320 - 16, true, [mummy]);
             assert.strictEqual(puzzle.totalMummyJumps, 1);
             puzzle.notifyWallActivated('ch4_wall1');
@@ -61,8 +61,8 @@ describe('Chamber 4 Puzzles Mechanics & State Machine Specs', () => {
         it('debe registrar 3 saltos en N1 y 1 salto en N2 para petrificar y revelar la gema', () => {
             const puzzle = new Chamber4Puzzle();
 
-            const mummyN1 = new Mummy(240, 320, 80, 336, Direction.Left, 1.0); // Nivel 1 (y = 320)
-            const mummyN2 = new Mummy(280, 192, 176, 400, Direction.Right, 1.0); // Nivel 2 (y = 192)
+            const mummyN1 = new Mummy(240, 320, 80, 336, Direction.Left); // Nivel 1 (y = 320)
+            const mummyN2 = new Mummy(280, 192, 176, 400, Direction.Right); // Nivel 2 (y = 192)
             const mummies = [mummyN1, mummyN2];
 
             // 3 saltos en Nivel 1

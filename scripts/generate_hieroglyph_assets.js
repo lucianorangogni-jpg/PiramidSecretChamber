@@ -455,6 +455,159 @@ function createMuralCh4P2() {
     return buf;
 }
 
+// -------------------------------------------------------------
+// RECÁMARA 5
+// -------------------------------------------------------------
+function createMuralCh5P1() {
+    const W = 128, H = 32;
+    const buf = Buffer.alloc(W * H * 4);
+    blitWithRelief(buf, W, H, glyphSingleChest, 14, 14, 4, 9);
+    drawSymbolRelief(buf, W, H, 22, 16, '+');
+    blitWithRelief(buf, W, H, glyphSingleChest, 14, 14, 28, 9);
+    drawSymbolRelief(buf, W, H, 46, 16, '+');
+    blitWithRelief(buf, W, H, glyphAnkh, 12, 18, 52, 7);
+    drawSymbolRelief(buf, W, H, 70, 16, '->');
+    drawStrokes(buf, W, H, 80, 9, 3);
+    drawSymbolRelief(buf, W, H, 100, 16, '->');
+    drawRadiantChest(buf, W, H, 110, 9);
+    return buf;
+}
+
+function createMuralCh5P2() {
+    const W = 128, H = 32;
+    const buf = Buffer.alloc(W * H * 4);
+    drawJumpOverMummy(buf, W, H, 2, '2x');
+    drawSymbolRelief(buf, W, H, 36, 16, '+');
+    drawJumpOverMummy(buf, W, H, 42, '2x');
+    drawSymbolRelief(buf, W, H, 76, 16, '->');
+    drawPetrifiedMummySection(buf, W, H, 84, 6);
+    drawSymbolRelief(buf, W, H, 104, 16, '->');
+    drawSacredGemSection(buf, W, H, 110, 8);
+    return buf;
+}
+
+// -------------------------------------------------------------
+// RECÁMARA 6
+// -------------------------------------------------------------
+function createMuralCh6P1() {
+    const W = 128, H = 32;
+    const buf = Buffer.alloc(W * H * 4);
+    blitWithRelief(buf, W, H, glyphSingleChest, 14, 14, 4, 9);
+    drawText(buf, W, H, 16, 16, '2');
+    drawSymbolRelief(buf, W, H, 26, 16, '->');
+    blitWithRelief(buf, W, H, glyphSingleChest, 14, 14, 34, 9);
+    drawSymbolRelief(buf, W, H, 52, 16, '+');
+    blitWithRelief(buf, W, H, glyphAnkh, 12, 18, 58, 7);
+    drawSymbolRelief(buf, W, H, 76, 16, '->');
+    drawStrokes(buf, W, H, 88, 9, 2);
+    drawSymbolRelief(buf, W, H, 102, 16, '->');
+    drawRadiantChest(buf, W, H, 110, 9);
+    return buf;
+}
+
+function createMuralCh6P2() {
+    const W = 128, H = 32;
+    const buf = Buffer.alloc(W * H * 4);
+    drawJumpOverMummy(buf, W, H, 6, '4x');
+    drawStrokes(buf, W, H, 42, 18, 4);
+    drawSymbolRelief(buf, W, H, 58, 16, '->');
+    drawPetrifiedMummySection(buf, W, H, 68, 6);
+    drawSymbolRelief(buf, W, H, 92, 16, '->');
+    drawSacredGemSection(buf, W, H, 102, 8);
+    return buf;
+}
+
+// -------------------------------------------------------------
+// RECÁMARA 7
+// -------------------------------------------------------------
+function createMuralCh7P1() {
+    const W = 128, H = 32;
+    const buf = Buffer.alloc(W * H * 4);
+    blitWithRelief(buf, W, H, glyphAnkh, 12, 18, 4, 7);
+    drawSymbolRelief(buf, W, H, 20, 16, '+');
+    drawJumpOverMummy(buf, W, H, 25, '1x');
+    drawSymbolRelief(buf, W, H, 59, 16, '+');
+    drawJumpOverMummy(buf, W, H, 64, '1x');
+    drawSymbolRelief(buf, W, H, 98, 16, '->');
+    drawRadiantChest(buf, W, H, 110, 9);
+    return buf;
+}
+
+function createMuralCh7P2() {
+    const W = 128, H = 32;
+    const buf = Buffer.alloc(W * H * 4);
+    drawJumpOverMummy(buf, W, H, 2, '2x');
+    drawSymbolRelief(buf, W, H, 36, 16, '+');
+    drawJumpOverMummy(buf, W, H, 42, '3x');
+    drawSymbolRelief(buf, W, H, 76, 16, '->');
+    drawPetrifiedMummySection(buf, W, H, 84, 6);
+    drawSymbolRelief(buf, W, H, 104, 16, '->');
+    drawSacredGemSection(buf, W, H, 110, 8);
+    return buf;
+}
+
+// -------------------------------------------------------------
+// RECÁMARA 8
+// -------------------------------------------------------------
+function createMuralCh8P1() {
+    const W = 128, H = 32;
+    const buf = Buffer.alloc(W * H * 4);
+    blitWithRelief(buf, W, H, glyphSingleChest, 14, 14, 4, 9);
+    drawSymbolRelief(buf, W, H, 22, 16, '+');
+    blitWithRelief(buf, W, H, glyphAnkh, 12, 18, 28, 7);
+    drawSymbolRelief(buf, W, H, 44, 16, '+');
+    drawJumpOverMummy(buf, W, H, 49, '3x');
+    drawSymbolRelief(buf, W, H, 84, 16, '->');
+    drawStrokes(buf, W, H, 94, 9, 1);
+    drawSymbolRelief(buf, W, H, 104, 16, '->');
+    drawRadiantChest(buf, W, H, 112, 9);
+    return buf;
+}
+
+function createMuralCh8P2() {
+    const W = 128, H = 32;
+    const buf = Buffer.alloc(W * H * 4);
+    drawJumpOverMummy(buf, W, H, 2, '2x');
+    drawSymbolRelief(buf, W, H, 36, 16, '+');
+    drawJumpOverMummy(buf, W, H, 42, '2x');
+    drawSymbolRelief(buf, W, H, 76, 16, '->');
+    drawPetrifiedMummySection(buf, W, H, 84, 6);
+    drawSymbolRelief(buf, W, H, 104, 16, '->');
+    drawSacredGemSection(buf, W, H, 110, 8);
+    return buf;
+}
+
+// -------------------------------------------------------------
+// RECÁMARA 9
+// -------------------------------------------------------------
+function createMuralCh9P1() {
+    const W = 128, H = 32;
+    const buf = Buffer.alloc(W * H * 4);
+    blitWithRelief(buf, W, H, glyphAnkh, 12, 18, 4, 7);
+    drawText(buf, W, H, 16, 16, '1');
+    drawSymbolRelief(buf, W, H, 24, 16, '->');
+    blitWithRelief(buf, W, H, glyphSingleChest, 14, 14, 30, 9);
+    drawSymbolRelief(buf, W, H, 48, 16, '+');
+    drawJumpOverMummy(buf, W, H, 53, '3x');
+    drawSymbolRelief(buf, W, H, 88, 16, '->');
+    drawStrokes(buf, W, H, 98, 9, 3);
+    drawRadiantChest(buf, W, H, 112, 9);
+    return buf;
+}
+
+function createMuralCh9P2() {
+    const W = 128, H = 32;
+    const buf = Buffer.alloc(W * H * 4);
+    drawJumpOverMummy(buf, W, H, 2, '2x');
+    drawSymbolRelief(buf, W, H, 36, 16, '+');
+    drawJumpOverMummy(buf, W, H, 42, '2x');
+    drawSymbolRelief(buf, W, H, 76, 16, '->');
+    drawPetrifiedMummySection(buf, W, H, 84, 6);
+    drawSymbolRelief(buf, W, H, 104, 16, '->');
+    drawSacredGemSection(buf, W, H, 110, 8);
+    return buf;
+}
+
 // Generar todos los archivos PNG
 const murals = [
     { name: 'mural_puzzle_1.png', data: createMuralCh1P1() },
@@ -466,7 +619,17 @@ const murals = [
     { name: 'mural_ch3_p1.png', data: createMuralCh3P1() },
     { name: 'mural_ch3_p2.png', data: createMuralCh3P2() },
     { name: 'mural_ch4_p1.png', data: createMuralCh4P1() },
-    { name: 'mural_ch4_p2.png', data: createMuralCh4P2() }
+    { name: 'mural_ch4_p2.png', data: createMuralCh4P2() },
+    { name: 'mural_ch5_p1.png', data: createMuralCh5P1() },
+    { name: 'mural_ch5_p2.png', data: createMuralCh5P2() },
+    { name: 'mural_ch6_p1.png', data: createMuralCh6P1() },
+    { name: 'mural_ch6_p2.png', data: createMuralCh6P2() },
+    { name: 'mural_ch7_p1.png', data: createMuralCh7P1() },
+    { name: 'mural_ch7_p2.png', data: createMuralCh7P2() },
+    { name: 'mural_ch8_p1.png', data: createMuralCh8P1() },
+    { name: 'mural_ch8_p2.png', data: createMuralCh8P2() },
+    { name: 'mural_ch9_p1.png', data: createMuralCh9P1() },
+    { name: 'mural_ch9_p2.png', data: createMuralCh9P2() }
 ];
 
 for (const m of murals) {
@@ -474,4 +637,4 @@ for (const m of murals) {
     console.log(`Generated: public/assets/${m.name}`);
 }
 
-console.log('Successfully generated all diegetic murals for Chambers 1, 2, 3, and 4!');
+console.log('Successfully generated all diegetic murals for Chambers 1 to 9!');

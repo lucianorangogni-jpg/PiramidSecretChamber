@@ -6,6 +6,8 @@ import { Direction } from '../../src/core/Direction.ts';
 import { ChamberMummies } from '../../src/grid/ChamberMummies.ts';
 import { GameConstants } from '../../src/core/GameConstants.ts';
 import { PlayerConstants } from '../../src/entities/PlayerConstants.ts';
+import { RoomGrid } from '../../src/grid/RoomGrid.ts';
+import { TileType } from '../../src/grid/TileType.ts';
 
 describe('Mummy Enemy Patrol & Jump Mechanics Specs [US-021]', () => {
     it('debe inicializarse con velocidad inferior a la del jugador y hitbox calibrada', () => {
@@ -160,6 +162,37 @@ describe('Mummy Enemy Patrol & Jump Mechanics Specs [US-021]', () => {
                     mummyLevel1.maxX <= 368,
                     `Recámara 2: maxX (${mummyLevel1.maxX}) debe detenerse antes del foso en columna 12`
                 );
+            }
+        }
+    });
+
+    it('todas las momias en todas las recámaras (1 a 10) deben contar con espacio vertical libre suficiente (mínimo 96px / 3 filas) para saltar sobre ellas sin chocar con el techo', () => {
+        const grid = new RoomGrid();
+
+        for (let ch = 1; ch <= GameConstants.TOTAL_CHAMBERS; ch++) {
+            grid.loadChamber(ch);
+            const mummies = ChamberMummies.createMummiesForChamber(ch);
+
+            for (const mummy of mummies) {
+                const floorRow = Math.round(mummy.y / GameConstants.TILE_SIZE);
+                const colStart = Math.floor(mummy.minX / GameConstants.TILE_SIZE);
+                const colEnd = Math.floor(mummy.maxX / GameConstants.TILE_SIZE);
+
+                // El jugador requiere 32px (altura) + 56px (salto) = 88px de espacio libre vertical.
+                // Con 3 filas vacías (96px), el jugador tiene holgura suficiente para sobrevolar a la momia (28px).
+                for (let c = colStart; c <= colEnd; c++) {
+                    for (let deltaRow = 1; deltaRow <= 3; deltaRow++) {
+                        const checkRow = floorRow - deltaRow;
+                        if (checkRow >= 0) {
+                            const tile = grid.getTile(c, checkRow);
+                            assert.notStrictEqual(
+                                tile,
+                                TileType.SolidWall,
+                                `Recámara ${ch}: en momia (y=${mummy.y}, cols ${colStart}..${colEnd}), col ${c} fila ${checkRow} hay muro sólido. Debe haber al menos 3 filas de espacio libre (96px).`
+                            );
+                        }
+                    }
+                }
             }
         }
     });

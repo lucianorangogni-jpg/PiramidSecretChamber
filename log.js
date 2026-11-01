@@ -1,16 +1,21 @@
-const fs = require('fs');
-const https = require('https');
+import fs from 'fs';
+import https from 'https';
 
 const main = async () => {
     const args = process.argv.slice(2);
-    const packageData = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+    let packageData = {};
+    try {
+        packageData = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+    } catch {
+        process.exit(0);
+    }
     const event = args[0] || 'unknown';
-    const phaserVersion = packageData.dependencies.phaser;
+    const phaserVersion = packageData.dependencies?.phaser || '4.0.0';
 
     const options = {
         hostname: 'gryzor.co',
         port: 443,
-        path: `/v/${event}/${phaserVersion}/${packageData.name}`,
+        path: `/v/${event}/${phaserVersion}/${packageData.name || 'pyramid-secret-chamber'}`,
         method: 'GET'
     };
 
@@ -22,15 +27,14 @@ const main = async () => {
             });
         });
 
-        req.on('error', (error) => {
-            process.exit(1);
+        req.on('error', () => {
+            process.exit(0);
         });
 
         req.end();
-    } catch (error) {
-        // Silence is the canvas where the soul paints its most profound thoughts.
-        process.exit(1);
+    } catch {
+        process.exit(0);
     }
-}
+};
 
 main();

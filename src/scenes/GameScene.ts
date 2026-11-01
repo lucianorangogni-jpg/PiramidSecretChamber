@@ -21,6 +21,7 @@ import { ChamberMovingWalls } from '../grid/ChamberMovingWalls.ts';
 import { ChamberKeys } from '../grid/ChamberKeys.ts';
 import type { IChamberPuzzle } from '../puzzles/IChamberPuzzle.ts';
 import { ChamberPuzzleFactory } from '../puzzles/ChamberPuzzleFactory.ts';
+import { PuzzleProgressTracker } from '../puzzles/PuzzleProgressTracker.ts';
 
 export class GameScene extends Phaser.Scene {
     private grid!: RoomGrid;
@@ -69,6 +70,7 @@ export class GameScene extends Phaser.Scene {
     private hudScoreText!: Phaser.GameObjects.Text;
     private hudLivesText!: Phaser.GameObjects.Text;
     private hudKeyText!: Phaser.GameObjects.Text;
+    private hudPuzzleText!: Phaser.GameObjects.Text;
 
     // Teclas
     private numberKeys!: { [key: string]: Phaser.Input.Keyboard.Key };
@@ -99,6 +101,16 @@ export class GameScene extends Phaser.Scene {
         this.load.image('mural_ch3_p2', 'assets/mural_ch3_p2.png');
         this.load.image('mural_ch4_p1', 'assets/mural_ch4_p1.png');
         this.load.image('mural_ch4_p2', 'assets/mural_ch4_p2.png');
+        this.load.image('mural_ch5_p1', 'assets/mural_ch5_p1.png');
+        this.load.image('mural_ch5_p2', 'assets/mural_ch5_p2.png');
+        this.load.image('mural_ch6_p1', 'assets/mural_ch6_p1.png');
+        this.load.image('mural_ch6_p2', 'assets/mural_ch6_p2.png');
+        this.load.image('mural_ch7_p1', 'assets/mural_ch7_p1.png');
+        this.load.image('mural_ch7_p2', 'assets/mural_ch7_p2.png');
+        this.load.image('mural_ch8_p1', 'assets/mural_ch8_p1.png');
+        this.load.image('mural_ch8_p2', 'assets/mural_ch8_p2.png');
+        this.load.image('mural_ch9_p1', 'assets/mural_ch9_p1.png');
+        this.load.image('mural_ch9_p2', 'assets/mural_ch9_p2.png');
 
         TileGraphics.generateAll(this);
         PlayerGraphics.generateAll(this);
@@ -213,6 +225,12 @@ export class GameScene extends Phaser.Scene {
             fontFamily: 'Courier',
             fontSize: '12px',
             color: '#ff9d5c'
+        }).setOrigin(1, 0);
+
+        this.hudPuzzleText = this.add.text(628, 64, 'SARCOFAGO: 🔒 0/9', {
+            fontFamily: 'Courier',
+            fontSize: '12px',
+            color: '#71d4ff'
         }).setOrigin(1, 0);
 
         this.controlsText = this.add.text(12, 460, '[←][→]/Joystick: Mover | [↑][↓]: Escaleras | [Espacio/Botón]: Salto | [ESC/M]: Menú | [R]: Reintentar', {
@@ -507,6 +525,22 @@ export class GameScene extends Phaser.Scene {
 
         this.chamberStartScore = this.currentScore;
         this.respawnPlayer();
+
+        if (chamberNumber === 10) {
+            const tracker = PuzzleProgressTracker.getInstance();
+            if (!tracker.isChamber10Unlocked) {
+                this.time.delayedCall(100, () => {
+                    this.showFloatingScore(
+                        this.cameras.main.centerX,
+                        120,
+                        `🔒 ¡SARCÓFAGO SELLADO! (${tracker.completedChambersCount}/9 RECÁMARAS)`
+                    );
+                    if (this.statusText) {
+                        this.statusText.setText(`🔒 SARCÓFAGO SELLADO: Resuelve los puzles de las Recámaras 1 a 9 (${tracker.completedChambersCount}/9)`);
+                    }
+                });
+            }
+        }
     }
 
     private respawnPlayer(): void {
@@ -727,6 +761,7 @@ export class GameScene extends Phaser.Scene {
         if (this.hudScoreText) this.children.bringToTop(this.hudScoreText);
         if (this.hudLivesText) this.children.bringToTop(this.hudLivesText);
         if (this.hudKeyText) this.children.bringToTop(this.hudKeyText);
+        if (this.hudPuzzleText) this.children.bringToTop(this.hudPuzzleText);
         if (this.controlsText) this.children.bringToTop(this.controlsText);
     }
 
@@ -946,10 +981,22 @@ export class GameScene extends Phaser.Scene {
                 this.hudKeyText.setColor('#8a6b47');
             }
         }
+
+        if (this.hudPuzzleText) {
+            const tracker = PuzzleProgressTracker.getInstance();
+            const count = tracker.completedChambersCount;
+            if (tracker.isChamber10Unlocked) {
+                this.hudPuzzleText.setText('SARCOFAGO: 🔓 LISTO');
+                this.hudPuzzleText.setColor('#ffe26a');
+            } else {
+                this.hudPuzzleText.setText(`SARCOFAGO: 🔒 ${count}/9`);
+                this.hudPuzzleText.setColor('#71d4ff');
+            }
+        }
     }
 
     /**
-     * Renderiza los murales jeroglíficos diegéticos grabados en la roca de fondo para las Recámaras 1, 2, 3 y 4.
+     * Renderiza los murales jeroglíficos diegéticos grabados en la roca de fondo para las Recámaras 1 a 9.
      * Tienen fondo transparente y opacidad suave para fundirse orgánicamente con el muro de piedra.
      */
     private renderMurals(): void {
@@ -957,30 +1004,46 @@ export class GameScene extends Phaser.Scene {
         this.muralSprites = [];
 
         const chamber = this.grid.currentChamber;
-        if (chamber < 1 || chamber > 4) return;
+        if (chamber < 1 || chamber > 9) return;
 
         const mural1Key = `mural_ch${chamber}_p1`;
         const mural2Key = `mural_ch${chamber}_p2`;
 
-        // Coordenadas de los murales adaptadas a cada recámara
-        const mural1Col = 7;
-        const mural1Row = 11;
+        // Coordenadas de los murales adaptadas a cada recámara para evitar colisiones con plataformas
+        let mural1Col = 7;
+        let mural1Row = 11;
         let mural2Col = 11;
         let mural2Row = 2;
 
         if (chamber === 2 || chamber === 4) {
             mural2Col = 7;
             mural2Row = 3;
+        } else if (chamber === 5 || chamber === 7) {
+            mural1Row = 12;
+            mural2Col = 10;
+            mural2Row = 2;
+        } else if (chamber === 6) {
+            mural1Row = 12;
+            mural2Col = 6;
+            mural2Row = 2;
+        } else if (chamber === 8) {
+            mural1Row = 12;
+            mural2Col = 6;
+            mural2Row = 1;
+        } else if (chamber === 9) {
+            mural1Row = 12;
+            mural2Col = 9;
+            mural2Row = 1;
         }
 
-        // Mural Puzle 1 en Nivel 0 (columnas 7..10, fila 11): 128x32 px
+        // Mural Puzle 1 en Nivel 0 (columnas 7..10): 128x32 px
         const mural1 = this.add.image(mural1Col * GameConstants.TILE_SIZE, mural1Row * GameConstants.TILE_SIZE, mural1Key)
             .setOrigin(0, 0)
             .setAlpha(0.60)
             .setDepth(-10);
         this.muralSprites.push(mural1);
 
-        // Mural Puzle 2 en Nivel 2: 128x32 px
+        // Mural Puzle 2 en Plataforma Superior: 128x32 px
         const mural2 = this.add.image(mural2Col * GameConstants.TILE_SIZE, mural2Row * GameConstants.TILE_SIZE, mural2Key)
             .setOrigin(0, 0)
             .setAlpha(0.60)
@@ -1031,6 +1094,15 @@ export class GameScene extends Phaser.Scene {
             );
             if (pts > 0) {
                 this.currentScore += pts;
+                PuzzleProgressTracker.getInstance().markPuzzle1Solved(this.grid.currentChamber);
+                const tracker = PuzzleProgressTracker.getInstance();
+                if (tracker.isChamberCompleted(this.grid.currentChamber)) {
+                    this.showFloatingScore(
+                        this.player.x,
+                        this.player.y - 45,
+                        `¡RECÁMARA ${this.grid.currentChamber} PURIFICADA! (${tracker.completedChambersCount}/9)`
+                    );
+                }
                 if (this.secretTreasureSprite) {
                     this.secretTreasureSprite.setTexture('treasure_open');
                     this.tweens.add({
@@ -1083,6 +1155,15 @@ export class GameScene extends Phaser.Scene {
             );
             if (gemPts > 0) {
                 this.currentScore += gemPts;
+                PuzzleProgressTracker.getInstance().markPuzzle2Solved(this.grid.currentChamber);
+                const tracker = PuzzleProgressTracker.getInstance();
+                if (tracker.isChamberCompleted(this.grid.currentChamber)) {
+                    this.showFloatingScore(
+                        this.player.x,
+                        this.player.y - 45,
+                        `¡RECÁMARA ${this.grid.currentChamber} PURIFICADA! (${tracker.completedChambersCount}/9)`
+                    );
+                }
                 if (this.sacredGemSprite) {
                     this.tweens.add({
                         targets: this.sacredGemSprite,

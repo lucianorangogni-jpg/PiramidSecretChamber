@@ -399,9 +399,8 @@ export class RoomGrid {
 
         if (doorOnRight) {
             for (let x = 2; x <= 11; x++) this.setTile(x, level3Row, TileType.SolidWall);
-            for (let x = 14; x <= 18; x++) this.setTile(x, level3Row, TileType.SolidWall);
             level3MinCol = 2;
-            level3MaxCol = 18;
+            level3MaxCol = 11;
 
             for (let x = 11; x <= 15; x++) this.setTile(x, level4Row, TileType.SolidWall);
             this.setTile(17, level4Row, TileType.SolidWall);

@@ -101,10 +101,17 @@ export class ChamberMummies {
             mummies: [
                 {
                     x: 350,
-                    y: 256,
-                    minX: 200,
-                    maxX: 528,
+                    y: 256, // Plataforma Nivel 2 (fila 8) - Espacio aéreo de 3 tiles (96 px)
+                    minX: 256,
+                    maxX: 512,
                     direction: Direction.Left
+                },
+                {
+                    x: 280,
+                    y: 128, // Plataforma Nivel 3 (fila 4) - Espacio aéreo de 3 tiles (96 px)
+                    minX: 160,
+                    maxX: 480,
+                    direction: Direction.Right
                 }
             ]
         },
@@ -113,10 +120,17 @@ export class ChamberMummies {
             mummies: [
                 {
                     x: 280,
-                    y: 256,
+                    y: 256, // Plataforma Nivel 2 (fila 8) - Espacio aéreo de 3 tiles (96 px)
                     minX: 144,
                     maxX: 400,
                     direction: Direction.Right
+                },
+                {
+                    x: 320,
+                    y: 128, // Plataforma Nivel 3 (fila 4) - Espacio aéreo de 3 tiles (96 px)
+                    minX: 224,
+                    maxX: 480,
+                    direction: Direction.Left
                 }
             ]
         },
@@ -125,10 +139,18 @@ export class ChamberMummies {
             mummies: [
                 {
                     x: 350,
-                    y: 256,
-                    minX: 200,
-                    maxX: 496,
-                    direction: Direction.Left
+                    y: 256, // Plataforma Nivel 2 (fila 8) - Momia veloz de Horus (96 px)
+                    minX: 176,
+                    maxX: 480,
+                    direction: Direction.Left,
+                    speed: 1.2
+                },
+                {
+                    x: 280,
+                    y: 128, // Plataforma Nivel 3 (fila 4) - Espacio aéreo de 3 tiles (96 px)
+                    minX: 160,
+                    maxX: 480,
+                    direction: Direction.Right
                 }
             ]
         },
@@ -136,11 +158,18 @@ export class ChamberMummies {
             chamber: 8,
             mummies: [
                 {
-                    x: 280,
-                    y: 256,
-                    minX: 144,
-                    maxX: 400,
+                    x: 140,
+                    y: 256, // Plataforma Nivel 2 (fila 8, cols 2..7) - Espacio aéreo de 4 tiles (128 px)
+                    minX: 64,
+                    maxX: 224,
                     direction: Direction.Right
+                },
+                {
+                    x: 380,
+                    y: 160, // Plataforma Nivel 3 (fila 5, cols 8..18) - Espacio aéreo de 4 tiles (128 px)
+                    minX: 288,
+                    maxX: 512,
+                    direction: Direction.Left
                 }
             ]
         },
@@ -148,10 +177,17 @@ export class ChamberMummies {
             chamber: 9,
             mummies: [
                 {
-                    x: 280,
-                    y: 256,
-                    minX: 144,
-                    maxX: 400,
+                    x: 200,
+                    y: 160, // Plataforma Nivel 3 (fila 5, cols 2..10) - Espacio aéreo de 4 tiles (128 px)
+                    minX: 80,
+                    maxX: 320,
+                    direction: Direction.Right
+                },
+                {
+                    x: 440,
+                    y: 256, // Plataforma Nivel 2 (fila 8, cols 12..16) - Espacio aéreo de 4 tiles (128 px)
+                    minX: 384,
+                    maxX: 512,
                     direction: Direction.Left
                 }
             ]

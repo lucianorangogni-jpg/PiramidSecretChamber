@@ -5,6 +5,7 @@ import { TileGraphics } from '../graphics/TileGraphics.ts';
 import { PlayerGraphics } from '../graphics/PlayerGraphics.ts';
 import { TitleMenuModel, TitleMenuOption } from './TitleMenuModel.ts';
 import { GamepadManager } from '../input/GamepadManager.ts';
+import { PuzzleProgressTracker } from '../puzzles/PuzzleProgressTracker.ts';
 
 export { TitleMenuOption };
 
@@ -232,15 +233,23 @@ export class TitleScene extends Phaser.Scene {
         }
 
         const level = RoomGrid.getPyramidLevel(this.menuModel.selectedChamber);
-        const levelNames = [
-            '',
-            'NIVEL PIRÁMIDE: 1 (BASE - RECÁMARAS 1 A 4)',
-            'NIVEL PIRÁMIDE: 2 (GALERÍAS - RECÁMARAS 5 A 7)',
-            'NIVEL PIRÁMIDE: 3 (SANTUARIOS - RECÁMARAS 8 Y 9)',
-            'NIVEL PIRÁMIDE: 4 (CÚSPIDE DE MONTEZUMA - RECÁMARA 10)'
-        ];
-
-        this.pyramidLevelText.setText(levelNames[level] || '');
+        if (this.menuModel.selectedChamber === 10) {
+            const tracker = PuzzleProgressTracker.getInstance();
+            if (tracker.isChamber10Unlocked) {
+                this.pyramidLevelText.setText('NIVEL PIRÁMIDE: 4 (CÚSPIDE - SARCOFAGO DESBLOQUEADO)');
+            } else {
+                this.pyramidLevelText.setText(`NIVEL PIRÁMIDE: 4 (CÚSPIDE - SARCOFAGO SELLADO ${tracker.completedChambersCount}/9)`);
+            }
+        } else {
+            const levelNames = [
+                '',
+                'NIVEL PIRÁMIDE: 1 (BASE - RECÁMARAS 1 A 4)',
+                'NIVEL PIRÁMIDE: 2 (GALERÍAS - RECÁMARAS 5 A 7)',
+                'NIVEL PIRÁMIDE: 3 (SANTUARIOS - RECÁMARAS 8 Y 9)',
+                'NIVEL PIRÁMIDE: 4 (CÚSPIDE - RECÁMARA 10)'
+            ];
+            this.pyramidLevelText.setText(levelNames[level] || '');
+        }
     }
 }
 

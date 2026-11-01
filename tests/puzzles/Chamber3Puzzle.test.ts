@@ -86,8 +86,8 @@ describe('Chamber 3 Puzzles Mechanics & State Machine Specs', () => {
         it('debe registrar exactamente 1 salto en N1 y 3 saltos en N2 para petrificar y revelar la gema', () => {
             const puzzle = new Chamber3Puzzle();
 
-            const mummyN1 = new Mummy(220, 288, 80, 336, Direction.Right, 1.0); // Nivel 1 (y = 288)
-            const mummyN2 = new Mummy(350, 160, 200, 464, Direction.Left, 1.0); // Nivel 2 (y = 160)
+            const mummyN1 = new Mummy(220, 288, 80, 336, Direction.Right); // Nivel 1 (y = 288)
+            const mummyN2 = new Mummy(350, 160, 200, 464, Direction.Left); // Nivel 2 (y = 160)
             const mummies = [mummyN1, mummyN2];
 
             // 1 salto en Nivel 1
