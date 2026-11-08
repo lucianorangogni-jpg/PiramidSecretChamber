@@ -196,10 +196,10 @@ export class ChamberMummies {
             chamber: 10,
             mummies: [
                 {
-                    x: 350,
+                    x: 280,
                     y: 160,
                     minX: 200,
-                    maxX: 464,
+                    maxX: 384,
                     direction: Direction.Right
                 }
             ]

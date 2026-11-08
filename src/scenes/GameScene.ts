@@ -26,6 +26,7 @@ import type { IChamberPuzzle } from '../puzzles/IChamberPuzzle.ts';
 import { ChamberPuzzleFactory } from '../puzzles/ChamberPuzzleFactory.ts';
 import { PuzzleProgressTracker } from '../puzzles/PuzzleProgressTracker.ts';
 import { RetroAudio } from '../audio/RetroAudio.ts';
+import { Chamber10LeverGate } from '../entities/Chamber10LeverGate.ts';
 
 export class GameScene extends Phaser.Scene {
     private grid!: RoomGrid;
@@ -47,6 +48,12 @@ export class GameScene extends Phaser.Scene {
     // Pisos movedizos / trampas desmoronables de Nivel 1 (a partir de Recámara 5)
     private movingFloors: MovingFloorTrap[] = [];
     private movingFloorSprites: Phaser.GameObjects.Image[][] = [];
+
+    // Mecánica especial de Recámara 10: Palanca del Faraón y Muro de Cúspide
+    private chamber10Gate: Chamber10LeverGate | null = null;
+    private chamber10LeverSprite: Phaser.GameObjects.Image | null = null;
+    private chamber10GateWallSprites: Phaser.GameObjects.Image[] = [];
+    private chamber10SarcophagusSprite: Phaser.GameObjects.Image | null = null;
 
     // Llave ancestral y puerta de salida
     private chamberKey: Key | null = null;
@@ -291,6 +298,10 @@ export class GameScene extends Phaser.Scene {
         this.updateHUD();
         this.bringUIElementsToTop();
 
+        if (this.initialChamber === 10) {
+            this.setupChamber10Gate();
+        }
+
         // Iniciar música de ambientación egipcia para las recámaras (suave y atmosférica)
         RetroAudio.playChamberMusic(this);
         this.input.once('pointerdown', () => {
@@ -318,6 +329,7 @@ export class GameScene extends Phaser.Scene {
             this.updateActivePuzzle();
             this.updateMummies();
             this.checkMummyCollisions();
+            this.updateChamber10Gate();
             this.updateHUD();
         }
 
@@ -609,19 +621,9 @@ export class GameScene extends Phaser.Scene {
         this.respawnPlayer();
 
         if (chamberNumber === 10) {
-            const tracker = PuzzleProgressTracker.getInstance();
-            if (!tracker.isChamber10Unlocked) {
-                this.time.delayedCall(100, () => {
-                    this.showFloatingScore(
-                        this.cameras.main.centerX,
-                        120,
-                        `🔒 ¡SARCÓFAGO SELLADO! (${tracker.completedChambersCount}/9 RECÁMARAS)`
-                    );
-                    if (this.statusText) {
-                        this.statusText.setText(`🔒 SARCÓFAGO SELLADO: Resuelve los puzles de las Recámaras 1 a 9 (${tracker.completedChambersCount}/9)`);
-                    }
-                });
-            }
+            this.setupChamber10Gate();
+        } else {
+            this.clearChamber10Gate();
         }
     }
 
@@ -722,6 +724,160 @@ export class GameScene extends Phaser.Scene {
 
         this.currentScore = this.chamberStartScore;
         this.updateHUD();
+
+        if (this.grid.currentChamber === 10) {
+            this.setupChamber10Gate();
+        }
+    }
+
+    /**
+     * Inicializa y despliega la Palanca del Faraón, el Muro de la Cúspide y el Sarcófago en Recámara 10.
+     */
+    private setupChamber10Gate(): void {
+        this.clearChamber10Gate();
+
+        this.chamber10Gate = new Chamber10LeverGate();
+        this.chamber10Gate.reset(this.grid);
+
+        // 1. Renderizar la palanca suspendida en col 8, fila 3 (requiere salto desde Nivel 2)
+        const leverX = this.chamber10Gate.leverWorldX;
+        const leverY = this.chamber10Gate.leverWorldY;
+        this.chamber10LeverSprite = this.add.image(leverX, leverY, 'tile_lever_up');
+        this.chamber10LeverSprite.setDepth(20);
+
+        // 2. Renderizar el muro que cierra la escalera a la nueva plataforma (col 13, filas 3 y 4)
+        for (const row of Chamber10LeverGate.WALL_ROWS) {
+            const spr = this.add.image(
+                Chamber10LeverGate.WALL_GRID_X * GameConstants.TILE_SIZE + 16,
+                row * GameConstants.TILE_SIZE + 16,
+                'tile_pharaoh_gate'
+            );
+            spr.setDepth(15);
+            this.chamber10GateWallSprites.push(spr);
+        }
+
+        // 3. Renderizar el Sarcófago del Faraón en la nueva plataforma Cúspide (col 16, fila 1)
+        if (this.textures.exists('hud_sarcophagus_icon')) {
+            this.chamber10SarcophagusSprite = this.add.image(
+                16 * GameConstants.TILE_SIZE + 16,
+                1 * GameConstants.TILE_SIZE + 16,
+                'hud_sarcophagus_icon'
+            );
+            this.chamber10SarcophagusSprite.setScale(2.0); // 32x32 ceremonial
+            this.chamber10SarcophagusSprite.setDepth(15);
+        }
+
+        const tracker = PuzzleProgressTracker.getInstance();
+        if (!tracker.areAllPrerequisitePuzzlesSolved) {
+            this.time.delayedCall(100, () => {
+                const remaining = tracker.remainingPuzzlesCount;
+                const solved = tracker.solvedPuzzlesCount;
+                this.showFloatingScore(
+                    leverX,
+                    leverY - 24,
+                    `🔒 FALTAN ${remaining} PUZZLES (${solved}/18)`
+                );
+                if (this.statusText) {
+                    this.statusText.setText(
+                        `🔒 PALANCA BLOQUEADA: Faltan resolver ${remaining} puzzles de las Recámaras 1 a 9 (${solved}/18)`
+                    );
+                }
+            });
+        }
+    }
+
+    /**
+     * Limpia los elementos visuales de la palanca y muro de Recámara 10 al salir a otra recámara.
+     */
+    private clearChamber10Gate(): void {
+        if (this.chamber10LeverSprite) {
+            this.chamber10LeverSprite.destroy();
+            this.chamber10LeverSprite = null;
+        }
+        for (const spr of this.chamber10GateWallSprites) {
+            spr.destroy();
+        }
+        this.chamber10GateWallSprites = [];
+
+        if (this.chamber10SarcophagusSprite) {
+            this.chamber10SarcophagusSprite.destroy();
+            this.chamber10SarcophagusSprite = null;
+        }
+        this.chamber10Gate = null;
+    }
+
+    /**
+     * Detecta la activación de la palanca suspendida saltando en la Recámara 10.
+     * Si no están todos los 18 puzles resueltos, muestra el mensaje con los puzles faltantes.
+     * Si están todos resueltos, abre el muro y concede acceso a la Cúspide.
+     */
+    private updateChamber10Gate(): void {
+        if (!this.chamber10Gate || this.grid.currentChamber !== 10) return;
+
+        this.chamber10Gate.update();
+
+        const tracker = PuzzleProgressTracker.getInstance();
+        const result = this.chamber10Gate.tryInteract(this.player, tracker, this.grid);
+
+        if (result) {
+            if (!result.success) {
+                // Palanca bloqueada: mensaje indicando cuántos puzles faltan por resolver
+                this.showFloatingScore(
+                    this.chamber10Gate.leverWorldX,
+                    this.chamber10Gate.leverWorldY - 24,
+                    `🔒 FALTAN ${result.remainingPuzzles} PUZZLES (${result.solvedPuzzles}/18)`
+                );
+                if (this.statusText) {
+                    this.statusText.setText(result.message);
+                }
+                RetroAudio.playDoorOpen(this);
+
+                // Sacudida visual de resistencia de la palanca bloqueada
+                if (this.chamber10LeverSprite) {
+                    this.tweens.add({
+                        targets: this.chamber10LeverSprite,
+                        x: this.chamber10Gate.leverWorldX + 4,
+                        duration: 50,
+                        yoyo: true,
+                        repeat: 3
+                    });
+                }
+            } else {
+                // ¡Éxito! Todos los puzles resueltos y palanca accionada
+                this.showFloatingScore(
+                    this.chamber10Gate.leverWorldX,
+                    this.chamber10Gate.leverWorldY - 24,
+                    '✨ ¡MURO ABIERTO!'
+                );
+                if (this.statusText) {
+                    this.statusText.setText(result.message);
+                }
+                RetroAudio.playDoorOpen(this);
+                RetroAudio.playPuzzleSolved(this);
+
+                if (this.chamber10LeverSprite) {
+                    this.chamber10LeverSprite.setTexture('tile_lever_down');
+                }
+
+                // Animar apertura del muro deslizándose hacia arriba
+                for (const spr of this.chamber10GateWallSprites) {
+                    this.tweens.add({
+                        targets: spr,
+                        y: spr.y - 32,
+                        alpha: 0,
+                        duration: 600,
+                        ease: 'Power2',
+                        onComplete: () => {
+                            spr.destroy();
+                        }
+                    });
+                }
+                this.chamber10GateWallSprites = [];
+
+                // Re-renderizar los tiles para mostrar la escalera abierta
+                this.renderChamber();
+            }
+        }
     }
 
     private renderChamber(): void {
@@ -890,6 +1046,9 @@ export class GameScene extends Phaser.Scene {
         if (this.hudSarcophagusIcon) this.children.bringToTop(this.hudSarcophagusIcon);
         if (this.hudPuzzleText) this.children.bringToTop(this.hudPuzzleText);
         if (this.controlsText) this.children.bringToTop(this.controlsText);
+        if (this.chamber10LeverSprite) this.children.bringToTop(this.chamber10LeverSprite);
+        this.chamber10GateWallSprites.forEach((s) => this.children.bringToTop(s));
+        if (this.chamber10SarcophagusSprite) this.children.bringToTop(this.chamber10SarcophagusSprite);
     }
 
     private renderKey(): void {

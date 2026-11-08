@@ -175,7 +175,7 @@ export class RoomGrid {
                 this.loadFivePlatformChamber(9, 11, 8, 5, 3, 5, 8, 5, 11, true, 7, 12);
                 break;
             case 10:
-                this.loadChamberVariant(10, 9, 5, 5, 10, true, 8, 11, 13);
+                this.loadChamber10();
                 break;
         }
     }
@@ -238,6 +238,60 @@ export class RoomGrid {
             { level: 0, row: GameConstants.GRID_ROWS - 1, minCol: 1, maxCol: GameConstants.GRID_COLUMNS - 2, name: 'Suelo Base Nivel 0' },
             { level: 1, row: 10, minCol: 2, maxCol: 17, name: 'Plataforma Nivel 1' },
             { level: 2, row: 6, minCol: 1, maxCol: 17, name: 'Plataforma Nivel 2' }
+        );
+    }
+
+    private loadChamber10(): void {
+        this.buildPerimeterWalls();
+
+        // 1. Plataforma Nivel 1 (fila 9)
+        // SolidWall en cols 2 a 17 excepto el foso del piso movedizo en cols 7 y 8
+        for (let x = 2; x <= 17; x++) {
+            if (x === 7 || x === 8) continue;
+            this.setTile(x, 9, TileType.SolidWall);
+        }
+
+        // Escalera 1: conecta Suelo Base (fila 13) con Nivel 1 (fila 9) en columna 5
+        for (let y = 9; y <= 13; y++) {
+            this.setTile(5, y, TileType.Ladder);
+        }
+
+        // 2. Plataforma Nivel 2 (fila 5)
+        // SolidWall en cols 2 a 16
+        for (let x = 2; x <= 16; x++) {
+            this.setTile(x, 5, TileType.SolidWall);
+        }
+
+        // Escalera 2: conecta Nivel 1 (fila 9) con Nivel 2 (fila 5) en columna 10
+        for (let y = 5; y <= 9; y++) {
+            this.setTile(10, y, TileType.Ladder);
+        }
+
+        // 3. NUEVA PLATAFORMA Nivel 3 (Cúspide del Sarcófago, fila 2)
+        // Plataforma superior en cols 13 a 18
+        for (let x = 13; x <= 18; x++) {
+            this.setTile(x, 2, TileType.SolidWall);
+        }
+
+        // Escalera 3: conecta Nivel 2 (fila 5) con Nivel 3 (fila 2) en columna 13
+        for (let y = 2; y <= 5; y++) {
+            this.setTile(13, y, TileType.Ladder);
+        }
+
+        // Muro de cierre que bloquea la escalera hacia la nueva plataforma (filas 3 y 4 en col 13)
+        // Se abre al accionar la palanca saltando si todos los puzles están resueltos
+        this.setTile(13, 3, TileType.SolidWall);
+        this.setTile(13, 4, TileType.SolidWall);
+
+        // Puerta de salida en la nueva plataforma superior (col 18, fila 1)
+        this.setTile(18, 1, TileType.ExitDoor);
+
+        this.roomName = RoomGrid.ChamberNames[9];
+        this.platforms.push(
+            { level: 0, row: GameConstants.GRID_ROWS - 1, minCol: 1, maxCol: GameConstants.GRID_COLUMNS - 2, name: 'Suelo Base Nivel 0' },
+            { level: 1, row: 9, minCol: 2, maxCol: 17, name: 'Plataforma Nivel 1' },
+            { level: 2, row: 5, minCol: 2, maxCol: 16, name: 'Plataforma Nivel 2' },
+            { level: 3, row: 2, minCol: 13, maxCol: 18, name: 'Plataforma Cúspide Nivel 3' }
         );
     }
 

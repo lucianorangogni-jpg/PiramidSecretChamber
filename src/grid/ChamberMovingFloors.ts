@@ -7,11 +7,13 @@ export interface ChamberMovingFloorsConfig {
 
 /**
  * Catálogo maestro de Pisos Movedizos / Trampas de Desmoronamiento de la pirámide.
- * A partir de la Recámara 5 (y en adelante: 6, 7, 8, 9, 10), la plataforma del Nivel 1
- * cuenta con losas inestables que comienzan a temblar al pisarlas y colapsan tras ~1.3 segundos.
- * Si el jugador cruza sin detenerse, logra pasar a salvo.
- * Si se queda parado en el lugar, cae al Suelo Base (96 px de caída > 56 px máximo seguro),
- * sufriendo una caída letal y perdiendo una vida.
+ * A partir de la Recámara 5 (y en adelante: 6, 7, 8, 9, 10), las plataformas
+ * cuentan con losas inestables que comienzan a temblar al pisarlas y colapsan tras ~1.3 segundos.
+ * En las Recámaras 5, 6 y 7 se incorporan múltiples zonas de desmoronamiento distribuidas
+ * tanto en la Plataforma Nivel 1 (fila 11) como en la Plataforma Nivel 2 (fila 8).
+ * Si el jugador cruza sin detenerse o salta a tiempo, logra pasar a salvo.
+ * Si se queda parado en el lugar, cae hacia el nivel inferior (caída letal > 56 px),
+ * perdiendo una vida. Tras ~3 segundos colapsado, los bloques de arenisca retornan para evitar softlocks.
  */
 export class ChamberMovingFloors {
     private static readonly CONFIGS: readonly ChamberMovingFloorsConfig[] = [
@@ -20,11 +22,27 @@ export class ChamberMovingFloors {
             floors: [
                 {
                     chamber: 5,
-                    row: 11,
+                    row: 11, // Nivel 1: entre Escalera 1 (col 5) y Escalera 2 (col 8)
                     minCol: 6,
                     maxCol: 7,
                     triggerDelayFrames: 75, // ~1.25 segundos para cruzar 2 baldosas
                     openDurationFrames: 180 // 3 segundos abierto
+                },
+                {
+                    chamber: 5,
+                    row: 11, // Nivel 1: tramo oriental hacia el muro este
+                    minCol: 14,
+                    maxCol: 16,
+                    triggerDelayFrames: 80, // ~1.33 segundos para cruzar 3 baldosas
+                    openDurationFrames: 180
+                },
+                {
+                    chamber: 5,
+                    row: 8, // Nivel 2: senda hacia el disparador de la pared movediza y cofre
+                    minCol: 10,
+                    maxCol: 12,
+                    triggerDelayFrames: 80, // ~1.33 segundos para cruzar 3 baldosas
+                    openDurationFrames: 180
                 }
             ]
         },
@@ -33,10 +51,26 @@ export class ChamberMovingFloors {
             floors: [
                 {
                     chamber: 6,
-                    row: 11,
+                    row: 11, // Nivel 1: entre Escalera 1 (col 4) y Escalera 2 (col 10)
                     minCol: 6,
                     maxCol: 8,
                     triggerDelayFrames: 80, // ~1.33 segundos para cruzar 3 baldosas
+                    openDurationFrames: 180
+                },
+                {
+                    chamber: 6,
+                    row: 11, // Nivel 1: tramo oriental tras el foso de la llave (col 12)
+                    minCol: 14,
+                    maxCol: 16,
+                    triggerDelayFrames: 80,
+                    openDurationFrames: 180
+                },
+                {
+                    chamber: 6,
+                    row: 8, // Nivel 2: senda hacia la bóveda oriental
+                    minCol: 11,
+                    maxCol: 12,
+                    triggerDelayFrames: 75, // ~1.25 segundos para 2 baldosas
                     openDurationFrames: 180
                 }
             ]
@@ -46,10 +80,26 @@ export class ChamberMovingFloors {
             floors: [
                 {
                     chamber: 7,
-                    row: 11,
+                    row: 11, // Nivel 1: entre Escalera 1 (col 5) y Escalera 2 (col 9)
                     minCol: 6,
                     maxCol: 8,
                     triggerDelayFrames: 80, // ~1.33 segundos para cruzar 3 baldosas
+                    openDurationFrames: 180
+                },
+                {
+                    chamber: 7,
+                    row: 11, // Nivel 1: tramo oriental tras el foso de la llave (col 11)
+                    minCol: 14,
+                    maxCol: 16,
+                    triggerDelayFrames: 80,
+                    openDurationFrames: 180
+                },
+                {
+                    chamber: 7,
+                    row: 8, // Nivel 2: senda hacia la bóveda del tesoro bajo patrulla de Horus
+                    minCol: 10,
+                    maxCol: 12,
+                    triggerDelayFrames: 80,
                     openDurationFrames: 180
                 }
             ]

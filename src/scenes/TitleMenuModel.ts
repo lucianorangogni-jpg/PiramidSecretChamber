@@ -5,7 +5,8 @@ export const TitleMenuOption = {
     NewGame: 0,
     Continue: 1,
     SelectChamber: 2,
-    Controls: 3
+    Story: 3,
+    Controls: 4
 } as const;
 
 export type TitleMenuOption = typeof TitleMenuOption[keyof typeof TitleMenuOption];
@@ -33,8 +34,11 @@ export class TitleMenuModel {
             case TitleMenuOption.SelectChamber:
                 this.selectedOption = TitleMenuOption.Continue;
                 break;
-            case TitleMenuOption.Controls:
+            case TitleMenuOption.Story:
                 this.selectedOption = TitleMenuOption.SelectChamber;
+                break;
+            case TitleMenuOption.Controls:
+                this.selectedOption = TitleMenuOption.Story;
                 break;
         }
     }
@@ -48,6 +52,9 @@ export class TitleMenuModel {
                 this.selectedOption = TitleMenuOption.SelectChamber;
                 break;
             case TitleMenuOption.SelectChamber:
+                this.selectedOption = TitleMenuOption.Story;
+                break;
+            case TitleMenuOption.Story:
                 this.selectedOption = TitleMenuOption.Controls;
                 break;
             case TitleMenuOption.Controls:

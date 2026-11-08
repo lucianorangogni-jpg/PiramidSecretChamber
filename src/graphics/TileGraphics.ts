@@ -12,6 +12,8 @@ export class TileGraphics {
         this.generateLadderTexture(scene);
         this.generatePressurePlateTexture(scene);
         this.generateDoorTexture(scene);
+        this.generateLeverTextures(scene);
+        this.generatePharaohGateTexture(scene);
     }
 
     public static generateWallTexture(scene: Phaser.Scene): void {
@@ -275,6 +277,142 @@ export class TileGraphics {
         g.fillRect(14, 11, 4, 4);
 
         g.generateTexture('tile_door', size, size);
+        g.destroy();
+    }
+
+    /**
+     * Genera las texturas de la palanca suspendida del Faraón en la Recámara 10.
+     * `tile_lever_up`: palanca en posición de reposo (bloqueada/sin accionar).
+     * `tile_lever_down`: palanca accionada tras salto exitoso con todos los puzles resueltos.
+     */
+    public static generateLeverTextures(scene: Phaser.Scene): void {
+        const size = GameConstants.TILE_SIZE; // 32
+
+        if (!scene.textures.exists('tile_lever_up')) {
+            const g = scene.make.graphics({ x: 0, y: 0 });
+            // Base soporte de bronce oscuro anclada al techo
+            g.fillStyle(0x3c2410, 1);
+            g.fillRect(8, 0, 16, 6);
+            g.fillStyle(0x8a5824, 1);
+            g.fillRect(10, 2, 12, 3);
+
+            // Carcasa de la palanca
+            g.fillStyle(0x523214, 1);
+            g.fillRect(11, 6, 10, 8);
+            g.fillStyle(0xb88636, 1);
+            g.fillRect(13, 8, 6, 4);
+
+            // Pivote central
+            g.fillStyle(0x221307, 1);
+            g.fillCircle(16, 12, 4);
+            g.fillStyle(0xffd73c, 1);
+            g.fillCircle(16, 12, 2);
+
+            // Brazo de la palanca inclinado hacia la derecha (hacia arriba)
+            g.fillStyle(0xdca54c, 1);
+            g.fillRect(16, 11, 4, 3);
+            g.fillRect(19, 13, 4, 3);
+            g.fillRect(22, 15, 4, 4);
+
+            // Pomo / empuñadura de rubí sagrado
+            g.fillStyle(0xd22020, 1);
+            g.fillCircle(25, 18, 4);
+            g.fillStyle(0xff8888, 1);
+            g.fillCircle(24, 17, 2);
+
+            // Indicador de bloqueo (gema roja inactiva)
+            g.fillStyle(0x881111, 1);
+            g.fillRect(14, 3, 4, 2);
+
+            g.generateTexture('tile_lever_up', size, size);
+            g.destroy();
+        }
+
+        if (!scene.textures.exists('tile_lever_down')) {
+            const g = scene.make.graphics({ x: 0, y: 0 });
+            // Base soporte de bronce anclada al techo
+            g.fillStyle(0x3c2410, 1);
+            g.fillRect(8, 0, 16, 6);
+            g.fillStyle(0x8a5824, 1);
+            g.fillRect(10, 2, 12, 3);
+
+            // Carcasa de la palanca
+            g.fillStyle(0x523214, 1);
+            g.fillRect(11, 6, 10, 8);
+            g.fillStyle(0xb88636, 1);
+            g.fillRect(13, 8, 6, 4);
+
+            // Pivote central
+            g.fillStyle(0x221307, 1);
+            g.fillCircle(16, 12, 4);
+            g.fillStyle(0xffd73c, 1);
+            g.fillCircle(16, 12, 2);
+
+            // Brazo de la palanca tirado hacia abajo
+            g.fillStyle(0xdca54c, 1);
+            g.fillRect(15, 14, 3, 4);
+            g.fillRect(14, 18, 4, 4);
+            g.fillRect(13, 22, 5, 4);
+
+            // Pomo / empuñadura en posición baja
+            g.fillStyle(0xffd73c, 1);
+            g.fillCircle(15, 27, 4);
+            g.fillStyle(0xfff6a0, 1);
+            g.fillCircle(14, 26, 2);
+
+            // Indicador de activación (escarabajo verde/esmeralda luminoso)
+            g.fillStyle(0x20d260, 1);
+            g.fillRect(14, 3, 4, 2);
+            g.fillStyle(0x80ffb0, 1);
+            g.fillRect(15, 3, 2, 1);
+
+            g.generateTexture('tile_lever_down', size, size);
+            g.destroy();
+        }
+    }
+
+    /**
+     * Genera la textura para el Muro del Faraón que cierra la escalera a la Cúspide (`tile_pharaoh_gate`).
+     * Bloque de arenisca grabado con jeroglíficos ceremoniales y sello de oro.
+     */
+    public static generatePharaohGateTexture(scene: Phaser.Scene): void {
+        if (scene.textures.exists('tile_pharaoh_gate')) return;
+
+        const size = GameConstants.TILE_SIZE; // 32
+        const g = scene.make.graphics({ x: 0, y: 0 });
+
+        // Base arenisca oscura
+        g.fillStyle(0x84561c, 1);
+        g.fillRect(0, 0, size, size);
+
+        // Bisel dorado exterior
+        g.fillStyle(0xc8943c, 1);
+        g.fillRect(0, 0, size, 2);
+        g.fillRect(0, 0, 2, size);
+        g.fillStyle(0x42260e, 1);
+        g.fillRect(0, size - 2, size, 2);
+        g.fillRect(size - 2, 0, 2, size);
+
+        // Relieve interior tallado
+        g.fillStyle(0x5a3612, 1);
+        g.fillRect(4, 4, 24, 24);
+
+        // Sello sagrado de Ankh / Ojo de Horus en oro brillante
+        g.fillStyle(0xffd73c, 1);
+        g.fillRect(14, 8, 4, 16); // Barra vertical
+        g.fillRect(10, 12, 12, 3); // Barra horizontal
+        g.fillCircle(16, 8, 4);    // Lazo superior
+        g.fillStyle(0x5a3612, 1);
+        g.fillCircle(16, 8, 2);
+
+        // Gemas luminosas en las esquinas
+        g.fillStyle(0x40b0ff, 1); // Lapislázuli sagrado
+        g.fillRect(5, 5, 2, 2);
+        g.fillRect(25, 5, 2, 2);
+        g.fillRect(5, 25, 2, 2);
+        g.fillRect(25, 25, 2, 2);
+
+        g.generateTexture('tile_pharaoh_gate', size, size);
         g.destroy();
     }
 }

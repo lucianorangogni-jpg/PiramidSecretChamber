@@ -60,5 +60,34 @@ describe('PuzzleProgressTracker Specs', () => {
         assert.strictEqual(tracker.isChamberCompleted(3), false);
         assert.strictEqual(tracker.isChamber10Unlocked, false);
     });
+
+    it('debe calcular exactamente los puzles resueltos, restantes (de 18) y generar los mensajes correctos', () => {
+        tracker.reset();
+        assert.strictEqual(tracker.totalRequiredPuzzles, 18);
+        assert.strictEqual(tracker.solvedPuzzlesCount, 0);
+        assert.strictEqual(tracker.remainingPuzzlesCount, 18);
+        assert.strictEqual(tracker.areAllPrerequisitePuzzlesSolved, false);
+        assert.strictEqual(tracker.getRemainingPuzzlesMessage(), 'FALTAN 18 PUZZLES POR RESOLVER (0/18)');
+
+        // Resolver 3 puzles
+        tracker.markPuzzle1Solved(1);
+        tracker.markPuzzle2Solved(1);
+        tracker.markPuzzle1Solved(2);
+        assert.strictEqual(tracker.solvedPuzzlesCount, 3);
+        assert.strictEqual(tracker.remainingPuzzlesCount, 15);
+        assert.strictEqual(tracker.areAllPrerequisitePuzzlesSolved, false);
+        assert.strictEqual(tracker.getRemainingPuzzlesMessage(), 'FALTAN 15 PUZZLES POR RESOLVER (3/18)');
+
+        // Resolver hasta 17 puzles (falta 1)
+        for (let ch = 3; ch <= 9; ch++) {
+            tracker.markPuzzle1Solved(ch);
+            tracker.markPuzzle2Solved(ch);
+        }
+        tracker.markPuzzle2Solved(2); // Ahora 18 resueltos
+        assert.strictEqual(tracker.solvedPuzzlesCount, 18);
+        assert.strictEqual(tracker.remainingPuzzlesCount, 0);
+        assert.strictEqual(tracker.areAllPrerequisitePuzzlesSolved, true);
+        assert.strictEqual(tracker.getRemainingPuzzlesMessage(), '¡TODOS LOS PUZZLES RESUELTOS! (18/18)');
+    });
 });
 

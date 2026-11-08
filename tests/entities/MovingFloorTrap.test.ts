@@ -238,33 +238,51 @@ describe('Moving Floor Hazard Mechanics Specs (Nivel 1, Recámaras 5+)', () => {
         assert.strictEqual(grid.isSolid(7, 11), true);
     });
 
-    it('ChamberMovingFloors debe definir pisos movedizos para las recámaras a partir de la 5 (5, 6, 7, 8, 9, 10)', () => {
+    it('ChamberMovingFloors debe definir múltiples pisos movedizos para las recámaras 5, 6 y 7, y pisos en 8, 9, 10', () => {
         // Recámaras 1 a 4 NO tienen pisos movedizos
         for (let ch = 1; ch <= 4; ch++) {
             const traps = ChamberMovingFloors.createFloorsForChamber(ch);
             assert.strictEqual(traps.length, 0, `Recámara ${ch} no debe tener pisos movedizos`);
         }
 
-        // Recámara 5: fila 11, columnas 6 a 7
+        // Recámara 5: 3 pisos movedizos (2 en Nivel 1 y 1 en Nivel 2)
         const ch5Traps = ChamberMovingFloors.createFloorsForChamber(5);
-        assert.strictEqual(ch5Traps.length, 1);
+        assert.strictEqual(ch5Traps.length, 3, 'Recámara 5 debe tener 3 pisos movedizos');
         assert.strictEqual(ch5Traps[0].row, 11);
         assert.strictEqual(ch5Traps[0].minCol, 6);
         assert.strictEqual(ch5Traps[0].maxCol, 7);
+        assert.strictEqual(ch5Traps[1].row, 11);
+        assert.strictEqual(ch5Traps[1].minCol, 14);
+        assert.strictEqual(ch5Traps[1].maxCol, 16);
+        assert.strictEqual(ch5Traps[2].row, 8);
+        assert.strictEqual(ch5Traps[2].minCol, 10);
+        assert.strictEqual(ch5Traps[2].maxCol, 12);
 
-        // Recámara 6: fila 11, columnas 6 a 8
+        // Recámara 6: 3 pisos movedizos (2 en Nivel 1 y 1 en Nivel 2)
         const ch6Traps = ChamberMovingFloors.createFloorsForChamber(6);
-        assert.strictEqual(ch6Traps.length, 1);
+        assert.strictEqual(ch6Traps.length, 3, 'Recámara 6 debe tener 3 pisos movedizos');
         assert.strictEqual(ch6Traps[0].row, 11);
         assert.strictEqual(ch6Traps[0].minCol, 6);
         assert.strictEqual(ch6Traps[0].maxCol, 8);
+        assert.strictEqual(ch6Traps[1].row, 11);
+        assert.strictEqual(ch6Traps[1].minCol, 14);
+        assert.strictEqual(ch6Traps[1].maxCol, 16);
+        assert.strictEqual(ch6Traps[2].row, 8);
+        assert.strictEqual(ch6Traps[2].minCol, 11);
+        assert.strictEqual(ch6Traps[2].maxCol, 12);
 
-        // Recámara 7: fila 11, columnas 6 a 8
+        // Recámara 7: 3 pisos movedizos (2 en Nivel 1 y 1 en Nivel 2)
         const ch7Traps = ChamberMovingFloors.createFloorsForChamber(7);
-        assert.strictEqual(ch7Traps.length, 1);
+        assert.strictEqual(ch7Traps.length, 3, 'Recámara 7 debe tener 3 pisos movedizos');
         assert.strictEqual(ch7Traps[0].row, 11);
         assert.strictEqual(ch7Traps[0].minCol, 6);
         assert.strictEqual(ch7Traps[0].maxCol, 8);
+        assert.strictEqual(ch7Traps[1].row, 11);
+        assert.strictEqual(ch7Traps[1].minCol, 14);
+        assert.strictEqual(ch7Traps[1].maxCol, 16);
+        assert.strictEqual(ch7Traps[2].row, 8);
+        assert.strictEqual(ch7Traps[2].minCol, 10);
+        assert.strictEqual(ch7Traps[2].maxCol, 12);
 
         // Recámara 8: fila 11, columnas 4 a 5
         const ch8Traps = ChamberMovingFloors.createFloorsForChamber(8);
@@ -288,14 +306,77 @@ describe('Moving Floor Hazard Mechanics Specs (Nivel 1, Recámaras 5+)', () => {
         assert.strictEqual(ch10Traps[0].maxCol, 8);
     });
 
-    it('isMovingFloorTile debe verificar correctamente las coordenadas para el renderizado dinámico', () => {
-        // En Recámara 5: col 6 y 7 en fila 11 son trampa
+    it('isMovingFloorTile debe verificar correctamente las coordenadas para el renderizado dinámico en múltiples niveles', () => {
+        // En Recámara 5:
+        // Nivel 1 trampa 1 (cols 6 y 7, fila 11)
         assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(5, 6, 11), true);
         assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(5, 7, 11), true);
-        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(5, 5, 11), false);
-        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(5, 8, 11), false);
+        // Nivel 1 trampa 2 (cols 14 a 16, fila 11)
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(5, 14, 11), true);
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(5, 15, 11), true);
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(5, 16, 11), true);
+        // Nivel 2 trampa 3 (cols 10 a 12, fila 8)
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(5, 10, 8), true);
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(5, 11, 8), true);
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(5, 12, 8), true);
+
+        // Casillas no trampa en Recámara 5:
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(5, 5, 11), false, 'Escalera 1');
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(5, 8, 11), false, 'Escalera 2');
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(5, 13, 11), false, 'Suelo sólido N1');
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(5, 9, 8), false, 'Suelo sólido N2');
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(5, 13, 8), false, 'Trigger pared N2');
+
+        // En Recámara 6:
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(6, 6, 11), true);
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(6, 8, 11), true);
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(6, 14, 11), true);
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(6, 16, 11), true);
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(6, 11, 8), true);
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(6, 12, 8), true);
+
+        // En Recámara 7:
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(7, 6, 11), true);
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(7, 8, 11), true);
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(7, 14, 11), true);
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(7, 16, 11), true);
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(7, 10, 8), true);
+        assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(7, 12, 8), true);
 
         // En Recámara 1: no hay trampas
         assert.strictEqual(ChamberMovingFloors.isMovingFloorTile(1, 6, 11), false);
+    });
+
+    it('los pisos movedizos de Nivel 2 deben colapsar y provocar una caída letal de 96px a Nivel 1 si el jugador se queda parado', () => {
+        const grid = new RoomGrid();
+        grid.loadChamber(5);
+        const trapN2 = new MovingFloorTrap(5, 8, 10, 12, 80, 180);
+
+        const playerX = 11 * 32 + 16; // Centro col 11
+        const playerY = 8 * 32;       // Pies en Nivel 2 (fila 8 = 256 px)
+
+        assert.strictEqual(trapN2.isPlayerOnPlatform(playerX, playerY), true);
+        trapN2.update(playerX, playerY, false, grid);
+
+        assert.strictEqual(trapN2.isShaking, true);
+        assert.strictEqual(trapN2.remainingFrames, 80);
+
+        // Simular los 80 frames hasta colapso
+        for (let f = 0; f < 80; f++) {
+            trapN2.update(playerX, playerY, false, grid);
+        }
+
+        assert.strictEqual(trapN2.isOpen, true);
+        assert.strictEqual(grid.isSolid(10, 8), false);
+        assert.strictEqual(grid.isSolid(11, 8), false);
+        assert.strictEqual(grid.isSolid(12, 8), false);
+
+        // Caída letal desde Nivel 2 (y=256) hacia Nivel 1 (y=352)
+        const fallDistance = 352 - 256; // 96 px
+        assert.strictEqual(fallDistance, 96);
+        assert.ok(
+            fallDistance > PlayerConstants.MAX_SAFE_FALL_DISTANCE,
+            `Caída de ${fallDistance}px desde Nivel 2 debe superar la altura segura de ${PlayerConstants.MAX_SAFE_FALL_DISTANCE}px`
+        );
     });
 });

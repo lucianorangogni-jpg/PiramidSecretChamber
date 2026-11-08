@@ -94,11 +94,59 @@ export class PuzzleProgressTracker {
     }
 
     /**
+     * Cuenta cuántos puzles individuales (de los 18 posibles en recámaras 1 a 9) han sido resueltos.
+     */
+    public get solvedPuzzlesCount(): number {
+        let count = 0;
+        for (let c = 1; c < GameConstants.TOTAL_CHAMBERS; c++) {
+            if (this.isPuzzle1Solved(c)) count++;
+            if (this.isPuzzle2Solved(c)) count++;
+        }
+        return count;
+    }
+
+    /**
+     * Total de puzles requeridos en las recámaras 1 a 9 (9 recámaras * 2 puzles = 18 puzles).
+     */
+    public get totalRequiredPuzzles(): number {
+        return (GameConstants.TOTAL_CHAMBERS - 1) * 2; // 18
+    }
+
+    /**
+     * Cuántos puzles faltan por resolver antes de poder abrir el muro del Sarcófago en Recámara 10.
+     */
+    public get remainingPuzzlesCount(): number {
+        return Math.max(0, this.totalRequiredPuzzles - this.solvedPuzzlesCount);
+    }
+
+    /**
+     * Verifica si absolutamente todos los 18 puzles de las recámaras 1 a 9 han sido resueltos.
+     */
+    public get areAllPrerequisitePuzzlesSolved(): boolean {
+        return this.remainingPuzzlesCount === 0;
+    }
+
+    /**
+     * Devuelve el mensaje diegético exacto indicando cuántos puzles faltan resolver.
+     */
+    public getRemainingPuzzlesMessage(): string {
+        const remaining = this.remainingPuzzlesCount;
+        const solved = this.solvedPuzzlesCount;
+        if (remaining === 0) {
+            return `¡TODOS LOS PUZZLES RESUELTOS! (${solved}/${this.totalRequiredPuzzles})`;
+        }
+        if (remaining === 1) {
+            return `FALTA 1 PUZZLE POR RESOLVER (${solved}/${this.totalRequiredPuzzles})`;
+        }
+        return `FALTAN ${remaining} PUZZLES POR RESOLVER (${solved}/${this.totalRequiredPuzzles})`;
+    }
+
+    /**
      * La Recámara 10 (Cúspide) y el Sarcófago del Faraón solo se desbloquean
      * si se han completado todos los puzles de las 9 recámaras anteriores.
      */
     public get isChamber10Unlocked(): boolean {
-        return this.completedChambersCount === this.requiredChambersCount;
+        return this.areAllPrerequisitePuzzlesSolved;
     }
 }
 
