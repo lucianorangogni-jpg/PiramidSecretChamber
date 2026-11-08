@@ -5,7 +5,6 @@ import { ChamberMovingFloors } from '../../src/grid/ChamberMovingFloors.ts';
 import { RoomGrid } from '../../src/grid/RoomGrid.ts';
 import { TileType } from '../../src/grid/TileType.ts';
 import { PlayerConstants } from '../../src/entities/PlayerConstants.ts';
-import { GameConstants } from '../../src/core/GameConstants.ts';
 
 describe('Moving Floor Hazard Mechanics Specs (Nivel 1, Recámaras 5+)', () => {
     it('debe inicializarse en estado sólido con dimensiones y temporizador en 0', () => {

@@ -25,6 +25,7 @@ import { MovingFloorTrap } from '../entities/MovingFloorTrap.ts';
 import type { IChamberPuzzle } from '../puzzles/IChamberPuzzle.ts';
 import { ChamberPuzzleFactory } from '../puzzles/ChamberPuzzleFactory.ts';
 import { PuzzleProgressTracker } from '../puzzles/PuzzleProgressTracker.ts';
+import { RetroAudio } from '../audio/RetroAudio.ts';
 
 export class GameScene extends Phaser.Scene {
     private grid!: RoomGrid;
@@ -128,6 +129,7 @@ export class GameScene extends Phaser.Scene {
         KeyGraphics.generateAll(this);
         HieroglyphGraphics.generateAll(this);
         HUDGraphics.generateAll(this);
+        RetroAudio.preload(this);
     }
 
     create(): void {
@@ -288,6 +290,17 @@ export class GameScene extends Phaser.Scene {
 
         this.updateHUD();
         this.bringUIElementsToTop();
+
+        // Iniciar música de ambientación egipcia para las recámaras (suave y atmosférica)
+        RetroAudio.playChamberMusic(this);
+        this.input.once('pointerdown', () => {
+            RetroAudio.playChamberMusic(this);
+        });
+        if (this.input.keyboard) {
+            this.input.keyboard.once('keydown', () => {
+                RetroAudio.playChamberMusic(this);
+            });
+        }
     }
 
     update(): void {
@@ -311,6 +324,7 @@ export class GameScene extends Phaser.Scene {
         // Volver al Menú Principal con ESC o M
         if ((this.keyEsc && Phaser.Input.Keyboard.JustDown(this.keyEsc)) ||
             (this.keyM && Phaser.Input.Keyboard.JustDown(this.keyM))) {
+            RetroAudio.playMenuMusic(this);
             this.scene.start('TitleScene', { lastChamber: this.grid.currentChamber });
             return;
         }
@@ -375,8 +389,11 @@ export class GameScene extends Phaser.Scene {
             // Detección de pisada en activador exterior o interior
             if (this.player && !this.player.isEliminated) {
                 if (wall.isPlayerOnAnyTrigger(this.player.x, this.player.y, Player.HITBOX_WIDTH, Player.HITBOX_HEIGHT)) {
-                    if (!wasOpen && this.activePuzzle) {
-                        this.activePuzzle.notifyWallActivated(wall.id);
+                    if (!wasOpen) {
+                        RetroAudio.playDoorOpen(this);
+                        if (this.activePuzzle) {
+                            this.activePuzzle.notifyWallActivated(wall.id);
+                        }
                     }
                     wall.activate(); // Inicia o reinicia el temporizador de 5 segundos
                 }
@@ -515,6 +532,7 @@ export class GameScene extends Phaser.Scene {
                     // Notificación flotante de puntuación
                     this.showFloatingScore(treasure.pixelX + 16, treasure.pixelY, `+${points} PTS!`);
                     this.updateHUD();
+                    RetroAudio.playTreasure(this);
                 }
             }
         }
@@ -960,6 +978,7 @@ export class GameScene extends Phaser.Scene {
                     yoyo: true,
                     duration: 150
                 });
+                RetroAudio.playDoorOpen(this);
             }
 
             this.showFloatingScore(
@@ -972,6 +991,7 @@ export class GameScene extends Phaser.Scene {
                 this.statusText.setText('¡LLAVE OBTENIDA! La puerta de salida se ha abierto');
             }
             this.updateHUD();
+            RetroAudio.playKey(this);
         }
     }
 
@@ -1025,6 +1045,7 @@ export class GameScene extends Phaser.Scene {
         const completionBonus = 1000;
         this.currentScore += completionBonus;
         this.updateHUD();
+        RetroAudio.playExit(this);
 
         this.showFloatingScore(
             this.player.x,
@@ -1202,6 +1223,8 @@ export class GameScene extends Phaser.Scene {
                     'treasure_closed'
                 ).setOrigin(0, 0);
 
+                RetroAudio.playPuzzleSolved(this);
+
                 // Efecto de materialización divina
                 this.tweens.add({
                     targets: this.secretTreasureSprite,
@@ -1250,6 +1273,7 @@ export class GameScene extends Phaser.Scene {
                     this.statusText.setText('¡PUZLE RESUELTO! Tesoro Secreto del Faraón reclamado');
                 }
                 this.updateHUD();
+                RetroAudio.playTreasure(this);
             }
         }
 
@@ -1261,6 +1285,8 @@ export class GameScene extends Phaser.Scene {
                     this.activePuzzle.gemPixelY,
                     'item_gem'
                 ).setOrigin(0, 0);
+
+                RetroAudio.playPuzzleSolved(this);
 
                 // Flotación mística
                 this.tweens.add({
@@ -1316,6 +1342,7 @@ export class GameScene extends Phaser.Scene {
                     this.statusText.setText('¡PUZLE RESUELTO! Gema Sagrada de Ra obtenida');
                 }
                 this.updateHUD();
+                RetroAudio.playGem(this);
             }
         }
 

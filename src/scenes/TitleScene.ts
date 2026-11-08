@@ -6,6 +6,7 @@ import { PlayerGraphics } from '../graphics/PlayerGraphics.ts';
 import { TitleMenuModel, TitleMenuOption } from './TitleMenuModel.ts';
 import { GamepadManager } from '../input/GamepadManager.ts';
 import { PuzzleProgressTracker } from '../puzzles/PuzzleProgressTracker.ts';
+import { RetroAudio } from '../audio/RetroAudio.ts';
 
 export { TitleMenuOption };
 
@@ -39,6 +40,7 @@ export class TitleScene extends Phaser.Scene {
         this.load.image('hieroglyphs_raw', 'jeroglificosEgipcios_2.png');
         TileGraphics.generateAll(this);
         PlayerGraphics.generateAll(this);
+        RetroAudio.preload(this);
     }
 
     create(data?: { lastChamber?: number }): void {
@@ -137,7 +139,17 @@ export class TitleScene extends Phaser.Scene {
             this.cursors = this.input.keyboard.createCursorKeys();
             this.enterKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
             this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+            this.input.keyboard.once('keydown', () => {
+                RetroAudio.playMenuMusic(this);
+            });
         }
+
+        this.input.once('pointerdown', () => {
+            RetroAudio.playMenuMusic(this);
+        });
+
+        // Iniciar música del menú principal
+        RetroAudio.playMenuMusic(this);
 
         this.updateDisplay();
     }

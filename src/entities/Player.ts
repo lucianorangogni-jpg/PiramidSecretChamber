@@ -5,6 +5,7 @@ import { RoomGrid } from '../grid/RoomGrid.ts';
 import { PlayerState } from './PlayerState.ts';
 import { PlayerConstants } from './PlayerConstants.ts';
 import { GamepadManager, type PlayerInputState } from '../input/GamepadManager.ts';
+import { RetroAudio } from '../audio/RetroAudio.ts';
 
 /**
  * Entidad del arqueólogo protagonista.
@@ -114,6 +115,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             this.playerState = PlayerState.Eliminated;
             this.loseLife();
             this.setTexture('player_dead');
+            RetroAudio.playDeath(this.scene);
         }
     }
 
@@ -371,6 +373,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         } else {
             this.jumpDirection = Direction.None;
         }
+
+        RetroAudio.playJump(this.scene);
     }
 
     private updateJumping(grid: RoomGrid): void {
